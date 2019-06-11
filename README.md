@@ -1,4 +1,4 @@
-# Prologue
+# Introduction
 
 Modern business applications are expected to be up 24/7, even during the planned rollout of new features and periodic patching of Operating System or application. Achieving this feat requires tools and technologies that ensure the speed of development, infrastructure stability and ability to scale.
 
@@ -18,15 +18,18 @@ Figure 1: Couchbase Autonomous Operator for Kubernetes self-monitors and self-he
 
 # Prerequisites
 
-There are three high-level prerequisites before we begin the deployment of Couchbase Autonomous Operator on EKS:
+There are two important prerequisites before we begin the deployment of Couchbase Autonomous Operator on EKS:
 
-* You have [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/) installed on our local machine.
+1. You have installed _kubectl_ & _AWS CLI_ on your local machine as described in the [guide](./guides/prerequisite-tools.md).
 
-* Latest [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-install.html) is configured so that we can securely establish a channel between our local machine and the Kubernetes control plane running on AWS.
+2. You have AWS account and have setup Amazon EKS cluster as per the [EKS Instruction Guide](./guides/eks-setup.md).
 
-* Amazon [EKS cluster](https://docs.aws.amazon.com/eks/latest/userguide/getting-started.html) is deployed with at least three worker nodes in three separate availability zones so we can later deploy and manage our Couchbase cluster. We will be using us-east-1 as the region and us-east-1a/1b/1c as three availability-zones but you can deploy to any region/zones by making minor changes to YAML files in the examples below.
+In the labs below we will be using us-east-1 as the region and us-east-1a/1b/1c as three availability-zones but you can deploy to any region/zones by making minor changes to YAML files in the examples below.
 
-Run ‘kubectl get nodes’ command from the local machine to confirm EKS cluster is up and running.
+
+# Deploy Couchbase Autonomous Operator
+
+Before we begin with the setup of Couchbase Operator, run ‘kubectl get nodes’ command from the local machine to confirm EKS cluster is up and running.
 
 
 ```
@@ -38,9 +41,7 @@ ip-192-168-153-241.ec2.internal   Ready     <none>    110m      v1.11.9
 ip-192-168-218-112.ec2.internal   Ready     <none>    110m      v1.11.9
 ```
 
-# Deploy Couchbase Autonomous Operator
-
-Once we have tested that we can connect to Kubernetes control plane running on Amazon EKS cluster from our local machine, we can now begin with the steps required to deploy Couchbase Autonomous Operator, which is the glue technology enabling Couchbase Server cluster to be managed by Kubernetes.
+After we have tested that we can connect to Kubernetes control plane running on Amazon EKS cluster from our local machine, we can now begin with the steps required to deploy Couchbase Autonomous Operator, which is the glue technology enabling Couchbase Server cluster to be managed by Kubernetes.
 
 ### 1. Download Operator package
 
