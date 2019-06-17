@@ -63,7 +63,7 @@ bin				operator-deployment.yaml	pillowfight-data-loader.yaml
 
 Create a namespace that will allow cluster resources to be nicely separated between multiple users. To do that we will use a unique namespace called emart for our deployment and later will use this namespace to deploy Couchbase Cluster.
 
-In your working directory create a [namespace.yaml](https://github.com/sahnianuj/cb-operator/blob/master/namespace.yaml) file with this content and save it in the Couchbase operator directory itself:
+In your working directory create a [namespace.yaml](files/namespace.yaml) file with this content and save it in the Couchbase operator directory itself:
 
 ```
 apiVersion: v1
@@ -209,7 +209,7 @@ In a production environment where performance and SLA of the system matters most
 
 * **Cloud Integration**: Kubernetes integrates with native storage provisioners available on major cloud vendors such as AWS and GCE.
 
-In this next section we will see how you can define storage classes in different availability zone and build persistent volume claim template, which will be used in [couchbase-cluster-with-pv.yaml](https://github.com/sahnianuj/cb-operator/blob/master/couchbase-cluster-with-pv.yaml) file.
+In this next section we will see how you can define storage classes in different availability zone and build persistent volume claim template, which will be used in [couchbase-cluster-with-pv.yaml](files/couchbase-cluster-with-pv.yaml) file.
 
 ### 1) Create Secret for Couchbase Admin Console
 
@@ -244,7 +244,7 @@ We will run below steps to create three different storage classes of type gp2 to
 
 1) Create an AWS storage class manifest file for your storage class. Below example defines a storage class that uses the Amazon EBS gp2 volume type. For more information about the options available for AWS storage classes, see [AWS](https://kubernetes.io/docs/concepts/storage/storage-classes/#aws) in the Kubernetes documentation.
 
-* Create a storage definition file [sc-gp2.yaml](https://github.com/sahnianuj/cb-operator/blob/master/sc-gp2.yaml) that represent storage class of _gp2_ type (aka general purpose SSD drive), which we will later use it in our _VolumeClaimTemplate_.
+* Create a storage definition file [sc-gp2.yaml](files/sc-gp2.yaml) that represent storage class of _gp2_ type (aka general purpose SSD drive), which we will later use it in our _VolumeClaimTemplate_.
 
 ```
 apiVersion: storage.k8s.io/v1
@@ -359,7 +359,7 @@ Notice that we have created three separate data server groups (data-east-1a/-1b/
 
 ### 3) Deploy Couchbase Cluster
 
-The full spec for deploying Couchbase cluster across 3 different zones using persistent volumes can be seen in the [couchbase-cluster-with-pv-1.2.yaml](https://github.com/sahnianuj/cb-operator/blob/master/couchbase-cluster-with-pv-1.2.yaml) file. This file along with other sample yaml files used in this article can be downloaded from this git repo.
+The full spec for deploying Couchbase cluster across 3 different zones using persistent volumes can be seen in the [couchbase-cluster-with-pv-1.2.yaml](files/couchbase-cluster-with-pv-1.2.yaml) file. This file along with other sample yaml files used in this article can be downloaded from this git repo.
 
 Please open the yaml file and note that we are deploying data service in three AZs but deploying index & query service in two AZs only. You can change the configuration to meet your production requirements.
 
