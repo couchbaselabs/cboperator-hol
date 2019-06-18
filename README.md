@@ -5,11 +5,11 @@ The Couchbase Autonomous Operator provides a native integration of Couchbase Ser
 
 |![On-Premise](assets/on-premise.png)|![EKS](assets/eks.png)|![GKE](assets/gke.png)|![AKS](assets/aks.png)|
 | :--- | :--- | :--- | :--- |
-| [On-Premise](./) | [Amazon EKS](eks) | [Google GKE](gke) | [Azure AKS](./) |
+| [On-Premise]() | [Amazon EKS](eks) | [Google GKE](gke) | [Azure AKS]() |
 
 
 ## Deployments On-premise
-* [Add here your new guide...](./)
+* [Add here your new guide...]()
 
 ## Deployments on Cloud
 
@@ -23,4 +23,4 @@ The Couchbase Autonomous Operator provides a native integration of Couchbase Ser
 
 ### Azure AKS
 
-* [Add here your new AKS guide...](./)
+* [Add here your new AKS guide...]()
