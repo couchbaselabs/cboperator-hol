@@ -1,0 +1,26 @@
+couchbaseCluster:
+  version: "enterprise-6.0.1"
+  cluster:
+    indexStorageSetting: plasma
+    autoFailoverTimeout: 30
+    autoFailoverMaxCount: 3
+    autoFailoverOnDataDiskIssues: true
+    autoFailoverOnDataDiskIssuesTimePeriod: 30
+  buckets:
+    default:
+      name: demo
+      type: couchbase
+      memoryQuota: 128
+      replicas: 1
+      ioPriority: high
+      evictionPolicy: valueOnly
+      conflictResolution: seqno
+      enableFlush: true
+      enableIndexReplica: false
+  servers:
+    all_services:
+      size: 3
+      services:
+        - data
+        - index
+        - query
