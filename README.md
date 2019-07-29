@@ -1,4 +1,4 @@
-# Couchbase Operator
+# Introduction
 
 Modern business applications are expected to be up 24/7, even during the planned rollout of new features and periodic patching of Operating System or application. Achieving this feat requires tools and technologies that ensure the speed of development, infrastructure stability and ability to scale.
 
@@ -31,7 +31,7 @@ Figure 1: Couchbase Autonomous Operator for Kubernetes self-monitors and self-he
 
 ### Amazon EKS
 
-* [Couchbase Operator guide](eks/cb-operator-guide)
+* [Couchbase Operator guide](eks)
 
 ### Google GKE
 
