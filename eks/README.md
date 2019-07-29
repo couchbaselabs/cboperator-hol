@@ -209,7 +209,7 @@ In a production environment where performance and SLA of the system matters most
 
 * **Cloud Integration**: Kubernetes integrates with native storage provisioners available on major cloud vendors such as AWS and GCE.
 
-In this next section we will see how you can define storage classes in different availability zone and build persistent volume claim template, which will be used in [couchbase-cluster-with-pv.yaml](files/couchbase-cluster-with-pv.yaml) file.
+In this next section we will see how you can define storage classes in different availability zone and build persistent volume claim template, which will be used in [[couchbase-cluster-with-pv-1.2.yaml](files/couchbase-cluster-with-pv-1.2.yaml) file.
 
 ### 1) Create Secret for Couchbase Admin Console
 
