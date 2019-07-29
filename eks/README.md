@@ -1,28 +1,11 @@
-# Introduction
-
-Modern business applications are expected to be up 24/7, even during the planned rollout of new features and periodic patching of Operating System or application. Achieving this feat requires tools and technologies that ensure the speed of development, infrastructure stability and ability to scale.
-
-Container orchestration tools like Kubernetes is revolutionizing the way applications are being developed and deployed today by abstracting away the physical machines it manages. With Kubernetes, you can describe the amount of memory, compute power you want, and have it available without worrying about the underlying infrastructure.
-
-Pods (unit of computing resource) and containers (where the applications are run) in Kubernetes environment can self-heal in the event of any type of failure. They are, in essence, ephemeral. This works just fine when you have a stateless microservice but applications that require their state maintained for example database management systems like Couchbase, you need to be able to externalize the storage from the lifecycle management of Pods & Containers so that the data can be recovered quickly by simply remounting the storage volumes to a newly elected Pod.
-
-This is what Persistent Volumes enables in Kubernetes based deployments. Couchbase Autonomous Operator is one of the first adopters of this technology to make recovery from any infrastructure-based failure seamless and most importantly faster.
-
-In this article we will take a step-by-step look at how you can deploy Couchbase cluster on Amazon Elastic Container Service for Kubernetes (Amazon EKS):
-* using multiple Couchbase server groups that can be mapped to a separate availability zone for high availability
-* leverage persistent volumes for fast recovery from infrastructure failure.
-
-![](https://blog.couchbase.com/wp-content/uploads/2019/04/K8-Animation.gif)
-
-Figure 1: Couchbase Autonomous Operator for Kubernetes self-monitors and self-heals Couchbase database platform.
 
 # Prerequisites
 
 There are two important prerequisites before we begin the deployment of Couchbase Autonomous Operator on EKS:
 
-1. You have installed _kubectl_ & _AWS CLI_ on your local machine as described in the [guide](./guides/prerequisite-tools.md).
+1. You have installed _kubectl_ & _AWS CLI_ on your local machine as described in the [guide](./cb-operator-guide/guides/prerequisite-tools.md).
 
-2. You have AWS account and have setup Amazon EKS cluster as per the [EKS Instruction Guide](./guides/eks-setup.md).
+2. You have AWS account and have setup Amazon EKS cluster as per the [EKS Instruction Guide](./cb-operator-guide/guides/eks-setup.md).
 
 In the labs below we will be using us-east-1 as the region and us-east-1a/1b/1c as three availability-zones but you can deploy to any region/zones by making minor changes to YAML files in the examples below.
 
@@ -63,7 +46,7 @@ bin				operator-deployment.yaml	pillowfight-data-loader.yaml
 
 Create a namespace that will allow cluster resources to be nicely separated between multiple users. To do that we will use a unique namespace called emart for our deployment and later will use this namespace to deploy Couchbase Cluster.
 
-In your working directory create a [namespace.yaml](files/namespace.yaml) file with this content and save it in the Couchbase operator directory itself:
+In your working directory create a [namespace.yaml](./cb-operator-guide/files/namespace.yaml) file with this content and save it in the Couchbase operator directory itself:
 
 ```
 apiVersion: v1
@@ -209,7 +192,7 @@ In a production environment where performance and SLA of the system matters most
 
 * **Cloud Integration**: Kubernetes integrates with native storage provisioners available on major cloud vendors such as AWS and GCE.
 
-In this next section we will see how you can define storage classes in different availability zone and build persistent volume claim template, which will be used in [[couchbase-cluster-with-pv-1.2.yaml](files/couchbase-cluster-with-pv-1.2.yaml) file.
+In this next section we will see how you can define storage classes in different availability zone and build persistent volume claim template, which will be used in [[couchbase-cluster-with-pv-1.2.yaml](./cb-operator-guide/files/couchbase-cluster-with-pv-1.2.yaml) file.
 
 ### 1) Create Secret for Couchbase Admin Console
 
@@ -244,7 +227,7 @@ We will run below steps to create three different storage classes of type gp2 to
 
 1) Create an AWS storage class manifest file for your storage class. Below example defines a storage class that uses the Amazon EBS gp2 volume type. For more information about the options available for AWS storage classes, see [AWS](https://kubernetes.io/docs/concepts/storage/storage-classes/#aws) in the Kubernetes documentation.
 
-* Create a storage definition file [sc-gp2.yaml](files/sc-gp2.yaml) that represent storage class of _gp2_ type (aka general purpose SSD drive), which we will later use it in our _VolumeClaimTemplate_.
+* Create a storage definition file [sc-gp2.yaml](./cb-operator-guide/files/sc-gp2.yaml) that represent storage class of _gp2_ type (aka general purpose SSD drive), which we will later use it in our _VolumeClaimTemplate_.
 
 ```
 apiVersion: storage.k8s.io/v1
@@ -359,7 +342,7 @@ Notice that we have created three separate data server groups (data-east-1a/-1b/
 
 ### 3) Deploy Couchbase Cluster
 
-The full spec for deploying Couchbase cluster across 3 different zones using persistent volumes can be seen in the [couchbase-cluster-with-pv-1.2.yaml](files/couchbase-cluster-with-pv-1.2.yaml) file. This file along with other sample yaml files used in this article can be downloaded from this git repo.
+The full spec for deploying Couchbase cluster across 3 different zones using persistent volumes can be seen in the [couchbase-cluster-with-pv-1.2.yaml](./cb-operator-guide/files/couchbase-cluster-with-pv-1.2.yaml) file. This file along with other sample yaml files used in this article can be downloaded from this git repo.
 
 Please open the yaml file and note that we are deploying data service in three AZs but deploying index & query service in two AZs only. You can change the configuration to meet your production requirements.
 

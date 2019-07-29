@@ -19,7 +19,7 @@ Figure 1: Couchbase Autonomous Operator for Kubernetes self-monitors and self-he
 
 **Repository guides**:
 
-|![On-Premise](assets/on-premise.png)|![EKS](assets/eks.png)|![GKE](assets/gke.png)|![AKS](assets/aks.png)|
+|![Open-Source](assets/on-premise.png)|![EKS](assets/eks.png)|![GKE](assets/gke.png)|![AKS](assets/aks.png)|
 | :--- | :--- | :--- | :--- |
 | [Open-Source]() | [Amazon EKS](eks) | [Google GKE](gke) | [Azure AKS]() |
 
