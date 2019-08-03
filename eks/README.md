@@ -42,7 +42,27 @@ admission.yaml			crd.yaml			operator-service-account.yaml
 bin				operator-deployment.yaml	pillowfight-data-loader.yaml
 ```
 
-### 2) Create a namespace
+### 2) Install Admission controller
+
+The admission controller is a required component of the Couchbase Autonomous Operator and needs to be installed separately. The primary purpose of the admission controller is to validate Couchbase cluster configuration changes before the Operator acts on them, thus protecting your Couchbase deployment (and the Operator) from any accidental damage that might arise from an invalid configuration. For architecture details please visit documentation page on the [Admission Controller](https://docs.couchbase.com/operator/current/install-admission-controller.html#architecture)
+
+Use the following steps to deploy the the admission controller:
+
+- From Couchbase operator directory run the following command to create the admission controller:
+
+```
+$ kubectl create -f admission.yaml
+```
+- Confirm the admission controller has deployed successfully:
+
+```
+$ kubectl get deployments
+
+NAME                           DESIRED   CURRENT   UP-TO-DATE   AVAILABLE   AGE
+couchbase-operator-admission   1         1         1            1           1m
+```
+
+### 3) Create a namespace
 
 Create a namespace that will allow cluster resources to be nicely separated between multiple users. To do that we will use a unique namespace called emart for our deployment and later will use this namespace to deploy Couchbase Cluster.
 
@@ -73,7 +93,7 @@ emart         Active    12s
 
 From now onwards we will use emart as the namespace for all resource provisioning.
 
-### 3) Install CRD
+### 4) Install CRD
 
 The first step in installing the Operator is to install the custom resource definition (CRD) that describes the CouchbaseCluster resource type. This can be achieved with the following command:
 
@@ -81,7 +101,7 @@ The first step in installing the Operator is to install the custom resource defi
 kubectl create -f crd.yaml
 ```
 
-### 4) Create a Operator Role
+### 5) Create a Operator Role
 
 Next, we will create a [cluster role](https://kubernetes.io/docs/reference/access-authn-authz/rbac/#api-overview) that allows the Operator to access the resources that it needs to run. Since the Operator will manage many different [namespaces](https://kubernetes.io/docs/concepts/overview/working-with-objects/namespaces/), it is best to create a cluster role first because you can assign that role to a [service account](https://kubernetes.io/docs/reference/access-authn-authz/rbac/#service-account-permissions) in any namespace.
 
@@ -93,7 +113,7 @@ $ kubectl create -f operator-role.yaml --namespace emart
 
 This cluster role only needs to be created once.
 
-### 5) Create a Service Account
+### 6) Create a Service Account
 
 After the cluster role is created, you need to create a service account in the namespace where you are installing the Operator. To create the service account:
 
@@ -120,7 +140,7 @@ Kubectl get rolebindings -n emart
 Kubectl get sa -n emart
 ```
 
-### 6) Deploy Couchbase Operator
+### 7) Deploy Couchbase Operator
 
 We now have all the roles and privileges for our operator to be deployed. Deploying the operator is as simple as running the operator.yaml file from the Couchbase Autonomous Operator directory.
 
