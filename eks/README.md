@@ -42,7 +42,7 @@ admission.yaml			crd.yaml			operator-service-account.yaml
 bin				operator-deployment.yaml	pillowfight-data-loader.yaml
 ```
 
-### 2) Install Admission controller
+### 2) Install Admission Controller
 
 The admission controller is a required component of the Couchbase Autonomous Operator and needs to be installed separately. The primary purpose of the admission controller is to validate Couchbase cluster configuration changes before the Operator acts on them, thus protecting your Couchbase deployment (and the Operator) from any accidental damage that might arise from an invalid configuration. For architecture details please visit documentation page on the [Admission Controller](https://docs.couchbase.com/operator/current/install-admission-controller.html#architecture)
 
