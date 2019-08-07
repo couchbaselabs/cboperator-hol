@@ -1,0 +1,12 @@
+# Define backup storage volume
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: couchbase-cluster-backup
+spec:
+  resources:
+    requests:
+      storage: 100Gi
+  storageClassName: standard
+  accessModes:
+    - ReadWriteOnce
