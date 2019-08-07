@@ -369,7 +369,7 @@ Please open the yaml file and note that we are deploying data service in three A
 Now use kubectl to deploy the cluster.
 
 ```
-$ kubectl create -f couchbase-cluster-with-pv-1.2.yaml  --namespace emart
+$ kubectl create -f couchbase-cluster-with-pv-1.2.yaml --save-config --namespace emart
 ```
 
 This will start deploying the Couchbase cluster and if all goes fine then we will have five Couchbase cluster pods hosting the services as per the configuration file above. To check the progress run this command, which will watch (-w argument) the progress of pods creating:
@@ -418,6 +418,163 @@ At this point you can open up a browser and type http://locahost:8091 which will
 ![](https://blog.couchbase.com/wp-content/uploads/2019/04/K8-Cluster--1024x516.png)
 
 Figure 2: Five node Couchbase cluster using persistent volumes.
+
+# HA with Auto-Healing Feature
+
+One of the best feature of Kubernetes in general is that it provides Auto-Healing capability to the services that are managed by it. With Couchbase Autonomous Operator we leverage the same Auto-Healing capability of K8 for Couchbase Cluster.
+
+We are going to test this capability by manually deleting the pod, which would be detected by K8 as an exception, which will inform the operator to bring back the current state of the cluster to the desired state as specified in the [couchbase-cluster-with-pv-1.2.yaml](./cb-operator-guide/files/couchbase-cluster-with-pv-1.2.yaml) file.
+
+Let's induce the fault now using kubectl delete command:
+
+```
+$ kubectl get pod --namespace emart
+NAME                                 READY     STATUS    RESTARTS   AGE
+cb-eks-demo-0000                     1/1       Running   0          8m17s
+cb-eks-demo-0001                     1/1       Running   0          7m23s
+cb-eks-demo-0002                     1/1       Running   0          6m32s
+cb-eks-demo-0003                     1/1       Running   0          5m42s
+cb-eks-demo-0004                     1/1       Running   0          4m52s
+couchbase-operator-f6f7b6f75-tbxdj   1/1       Running   0          45m
+
+$ kubectl delete pod cb-eks-demo-0001 --namespace emart
+pod "cb-eks-demo-0001" deleted
+
+```
+![](./cb-operator-guide/assets/server-dropped.png)
+Figure 3: One of the Data pod is dropped.
+
+After Couchbase Autonomous Operator detects the failure it triggers the healing process.
+
+![](./cb-operator-guide/assets/server-recovered.png)
+Figure 4: Data node with same name and persistent volume will be restored automatically.
+
+# Couchbase Operator Upgrade
+
+Any software in service goes through continuous improvement and there is definitely going to be the moments when you would like to upgrade Couchbase Autonomous Operator too because of some new feature or the patch which is critical for your business.
+
+Upgrading a distributed cluster like Couchbase requires careful orchestration of steps if you manually run the online upgrade operation. With Couchbase Autonomous Operator the whole symphony of these operations are completely automated, so the management becomes very easy.
+
+Let's take a look at how you can upgrade the system in an online fashion.
+
+## Preparing for Upgrade
+Before beginning an upgrade to your Kubernetes cluster, review the following considerations and prerequisites:
+
+- As an eviction deletes a pod, ensure that the Couchbase cluster is scaled correctly so that it can handle the increased load of having a pod down while a new pod is balanced into the cluster.
+
+- To minimize disruption, ensure that a short failover period is configured with the autoFailoverTimeout parameter to reduce down time before another node takes over the load.
+
+- Ensure that there is capacity in your Kubernetes cluster to handle the scheduling of replacement Couchbase pods. For example, if a Couchbase cluster were running on Kubernetes nodes marked exclusively for use by Couchbase, and anti-affinity were enabled as per the deployment [best practices](https://docs.couchbase.com/operator/current/best-practices.html), the Kubernetes cluster would require at least one other node capable of scheduling and running your Couchbase workload.
+
+## Perform Automatic Upgrade
+To prevent downtime or a data loss scenario, the Operator provides controls for how automated Kubernetes upgrades proceed.
+
+A PodDisruptionBudget is created for each CouchbaseCluster resource created. The PodDisruptionBudget specifies that at least the cluster size minus one node (N-1) be ready at any time. This constraint allows, at most, one node to be evicted at a time. As a result, it’s recommended that to support an automatic Kubernetes upgrade, the cluster be deployed with anti-affinity enabled to guarantee only a single eviction at a time.
+
+Now let's open [couchbase-cluster-with-pv-1.2.yaml](./cb-operator-guide/files/couchbase-cluster-with-pv-1.2.yaml) file and change:
+
+```
+spec:
+  baseImage: couchbase/server
+  version: enterprise-5.5.4
+  ```
+  to
+  ```
+  spec:
+    baseImage: couchbase/server
+    version: enterprise-6.0.2
+  ```
+  Now using kubectl to deploy the cluster.
+
+  ```
+  $ kubectl apply -f couchbase-cluster-with-pv-1.2.yaml  --namespace emart
+  ```
+At this point you would notice the pods will be evicted one by one and new pod will be joined to the existing cluster but with an upgraded Couchbase version (6.0.2).
+
+![](./cb-operator-guide/assets/upgrade.png)
+Figure 5: Couchbase Cluster getting upgraded one pod at a time in and online fashion.
+
+Note: At some point during upgrade when your cb-eks-demo-0000 pod is upgraded to a newer pod (cb-eks-demo-0005), you might need to reset the forwarding to newly upgraded pod like this:
+
+  ```
+  $ kubectl port-forward cb-eks-demo-0005 8091:8091 --namespace emart
+  ```
+Just wait for some time and cluster will upgraded one pod at a time in a rolling fashion.
+
+# Cluster Scale-Out/In
+
+If you have ever scaled-out or scaled-in a database cluster you would know that it is a non-trivial process as it entails lot of manually triggered steps which are not only time consuming but also error prone.
+
+With Couchbase Autonomous Operator scaling-out or scaling-in is as simple as changing the desired number servers for a specific service in the [couchbase-cluster-with-pv-1.2.yaml](./cb-operator-guide/files/couchbase-cluster-with-pv-1.2.yaml) file. Let's open this YAML file again and add one server node in us-east-1a server-group running Index and Query service.
+
+Notice we don't have any Index and Query service in the **us-east-1a** serverGroups:
+
+  ```
+  - name: query-east-1b
+    size: 1
+    services:
+      - query
+      - index
+    serverGroups:
+     - us-east-1b
+    pod:
+      volumeMounts:
+        default: pvc-default
+        index: pvc-index
+  - name: query-east-1c
+    size: 1
+    services:
+      - index
+      - query
+    serverGroups:
+     - us-east-1c
+    pod:
+      volumeMounts:
+        default: pvc-default
+        index: pvc-index
+  ```  
+So we are going to add one more server in **us-east-1a** server group hosting both index and query service like this:
+
+  ```
+  - name: query-east-1a
+    size: 1
+    services:
+      - query
+      - index
+    serverGroups:
+     - us-east-1a
+    pod:
+      volumeMounts:
+        default: pvc-default
+        index: pvc-index
+  - name: query-east-1b
+    ....
+  - name: query-east-1c
+    ....
+  ```
+A separate [couchbase-cluster-sout-with-pv-1.2.yaml](./cb-operator-guide/files/couchbase-cluster-sout-with-pv-1.2.yaml) file is provided just for convenience but if you want you can also make changes yourself in the [couchbase-cluster-with-pv-1.2.yaml](./cb-operator-guide/files/couchbase-cluster-with-pv-1.2.yaml)
+
+  ```
+  $ kubectl apply -f couchbase-cluster-sout-with-pv-1.2.yaml  --namespace emart
+
+  couchbasecluster.couchbase.com/cb-eks-demo configured
+```
+Notice a new pod will be getting ready to be added to the cluster:
+```
+  $ kubectl get pods --namespace emart -w
+NAME                                 READY     STATUS     RESTARTS   AGE
+cb-eks-demo-0000                     1/1       Running    0          44m
+cb-eks-demo-0001                     1/1       Running    0          34m
+cb-eks-demo-0002                     1/1       Running    0          42m
+cb-eks-demo-0003                     1/1       Running    0          41m
+cb-eks-demo-0004                     1/1       Running    0          40m
+cb-eks-demo-0005                     0/1       Init:0/1   0          11s
+  ```
+
+  After pod is ready you can view it from the Web Console as well.
+
+  ![](./cb-operator-guide/assets/scaled-out.png)
+  Figure 5: Cluster now has three Couchbase server pods hosting Index and Query services spread across three server-groups.
 
 # Conclusion
 
