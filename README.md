@@ -39,4 +39,4 @@ Figure 1: Couchbase Autonomous Operator for Kubernetes self-monitors and self-he
 
 ### Azure AKS
 
-* [Add here your new AKS guide...]()
+* [Couchbase Operator guide](aks)
