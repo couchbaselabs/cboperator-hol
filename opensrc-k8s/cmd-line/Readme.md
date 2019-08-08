@@ -166,14 +166,14 @@ Forwarding from [::1]:8091 -> 8091
 
 #### Couchbase UI
 
-1-cluster-home-page
+![1-cluster-home-page](assets/1-cluster-overview.png)
 
 
 Verify the root ca to check custom x509 cert is being used
 
 Click Security->Root Certificate
 
-2-root-ca-page
+![2-root-ca-page](assets/2-root-ca.png)
 
 
 Delete a pod at random, lets delete pod 001
@@ -185,13 +185,16 @@ pod "cb-opensource-k8s-0001" deleted
 
 Server would automatically failover, depending on the autoFailovertimeout
 
-3-svr-autofailover
+![3-svr-autofailover](assets/3-svr-autofailover.png)
 
 A lost couchbase is auto-recovered by Couchbase Operator as its contantly watching cluster definition
 
-4-auto-rebalance
+![4-auto-rebalance](assets/4-auto-rebalance.png)
 
-	
+
+## Conclusion
+We deployed Couchbase Autonomous Operator with version 1.2 on minikue version: v1.2.0. Couchbase cluster requires admission controller, RBACs with role limited to the namespace (more secure). CRD deployed has cluster wide scope, but that is by design. Couchbase cluster deployed had PV support and customer x509 certs. 
+We saw how how Couchbase cluster self-heals, and brings cluster up and healthy back without any user intervention.
 ## Cleanup
 
 ```
