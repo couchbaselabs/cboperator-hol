@@ -1,0 +1,62 @@
+apiVersion: couchbase.com/v1
+kind: CouchbaseCluster
+metadata:
+  name: cb-opensource-k8s
+spec:
+  baseImage: couchbase/server
+  version: enterprise-5.5.3
+  authSecret: cb-k8s-demo-auth
+  tls:
+    static:
+      member:
+        serverSecret: couchbase-server-tls
+      operatorSecret: couchbase-operator-tls
+  exposeAdminConsole: true
+  exposedFeatureServiceType: NodePort
+  adminConsoleServiceType: NodePort
+  adminConsoleServices:
+    - data
+  exposedFeatures:
+    - xdcr
+  cluster:
+    dataServiceMemoryQuota: 256
+    indexServiceMemoryQuota: 256
+    searchServiceMemoryQuota: 256
+    eventingServiceMemoryQuota: 256
+    analyticsServiceMemoryQuota: 1024
+    indexStorageSetting: memory_optimized
+    autoFailoverTimeout: 5 
+    autoFailoverMaxCount: 3
+    autoFailoverOnDataDiskIssues: true
+    autoFailoverOnDataDiskIssuesTimePeriod: 120
+    autoFailoverServerGroup: false
+  buckets:
+    - name: default
+      type: couchbase
+      memoryQuota: 128
+      replicas: 1
+      ioPriority: high
+      evictionPolicy: fullEviction
+      conflictResolution: seqno
+      enableFlush: true
+      enableIndexReplica: false
+      compressionMode: passive
+  servers:
+    - size: 3
+      name: data 
+      services:
+        - data
+      pod:
+        volumeMounts:
+          default: couchbase   # /opt/couchbase/var/lib/couchbase
+          data:  couchbase     # /mnt/data
+  securityContext:
+    fsGroup: 1000
+  volumeClaimTemplates:
+    - metadata:
+        name: couchbase
+      spec:
+        storageClassName: "standard"
+        resources:
+          requests:
+            storage: 1Gi
