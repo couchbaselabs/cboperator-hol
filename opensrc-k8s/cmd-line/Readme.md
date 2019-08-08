@@ -76,9 +76,11 @@ First we will create a namespace to localize our deployment
 		
 ## Deploy Couchbase Autonomous Operator
 *	Deploy Operator Role
+
 	`sudo kubectl create -f operator-role.yaml --namespace cbdb`
 	
 *	Create service account
+
 	`sudo kubectl create serviceaccount couchbase-operator --namespace cbdb`
 	
 *	Bind the service account 'couchbase-operator' with operator-role
@@ -92,10 +94,12 @@ First we will create a namespace to localize our deployment
 * Query deployment
 
 	```
+	
 	$ sudo kubectl get deployment --namespace cbdb
 NAME                           READY   UP-TO-DATE   AVAILABLE   AGE
 couchbase-operator             1/1     1            1           20m
 couchbase-operator-admission   1/1     1            1           20m
+	
 	```	
 
 ## Deploymnent Couchbase Cluster
@@ -114,6 +118,7 @@ couchbase-server-tls                       Opaque                               
 ```
 
 ### Deploy secret to access Couchbase UI
+
 
 `sudo kubectl create -f secret.yaml --namespace cbdb`
 
