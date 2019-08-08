@@ -223,19 +223,6 @@ Its exact opposite of scaling up, reduce the cluster to any number. But not less
 
 ## Run sample NodeJS application
 
-Deploy NodeJS couchbase SDK
-
-![NodeSDK](https://docs.couchbase.com/nodejs-sdk/current/start-using-sdk.html)
-
-Run the sample program
-
-Change the connection string
-
-`var cluster = new couchbase.Cluster('couchbases://cb-opensource-k8s-0000.cb-opensource-k8s.cbdb.svc?certpath=./ca.crt');`
-
-Download the root certificate for the Couchbase cluster 
-
-
 ### Create namespace for app tier
 
 ```
@@ -263,6 +250,10 @@ Login to the pods shell/exec into app pod
 $ sudo kubectl exec -ti app01 bash --namespace apps
 
 ```
+
+Prep the pod for installing python SDK
+
+[prep-app-pod for python SDK](https://docs.google.com/document/d/14lGw0KYOAzByHeO1yzNLEbfxe6MWQTNK/edit#)
 
 Edit the program with FQDN of the pod
 
