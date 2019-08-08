@@ -25,7 +25,7 @@ Figure 1: Couchbase Autonomous Operator for Kubernetes self-monitors and self-he
 
 
 ## Deployments On-premise
-* [Kubernetes Open Source](opensrc-k8s)
+* [Kubernetes Open Source Command Line](opensrc-k8s)
 
 ## Deployments on Cloud
 
