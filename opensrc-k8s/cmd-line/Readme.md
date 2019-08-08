@@ -96,9 +96,10 @@ First we will create a namespace to localize our deployment
 	```
 	
 	$ sudo kubectl get deployment --namespace cbdb
-NAME                           READY   UP-TO-DATE   AVAILABLE   AGE
-couchbase-operator             1/1     1            1           20m
-couchbase-operator-admission   1/1     1            1           20m
+	NAME                           READY   UP-TO-DATE   AVAILABLE   AGE
+	couchbase-operator             1/1     1            1           20m
+	couchbase-operator-admission   1/1     1            1           20m
+	
 	
 	```	
 
