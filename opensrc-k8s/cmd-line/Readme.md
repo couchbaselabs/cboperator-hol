@@ -12,6 +12,9 @@
 	Deploymnent Couchbase Cluster with following details
 		* PV 
 		* TLS certificates
+	Delete a pod
+	Check that cluster self-heals
+	Cluster is healthy
 	
 
 ## Pre-requisites
@@ -192,10 +195,133 @@ A lost couchbase is auto-recovered by Couchbase Operator as its contantly watchi
 ![4-auto-rebalance](assets/4-auto-rebalance.png)
 
 
+## Scaling up
+
+Change size to 4 from 3
+
+```
+--- a/opensrc-k8s/cmd-line/files/couchbase-persistent-cluster-tls-k8s-minikube.yaml
+       enableIndexReplica: false
+       compressionMode: passive
+   servers:
+-    - size: 3
++    - size: 4 
+       name: data
+       services:
+         - data
+```
+
+Run
+
+```
+sudo kubectl apply -f couchbase-persistent-cluster-tls-k8s-minikube.yaml --namespace cbdb
+```
+
+## Scaling down 
+
+Its exact opposite of scaling up, reduce the cluster to any number. But not less than 3. Couchbase MVP is 3 nodes.
+
+## Run sample NodeJS application
+
+Deploy NodeJS couchbase SDK
+
+![NodeSDK](https://docs.couchbase.com/nodejs-sdk/current/start-using-sdk.html)
+
+Run the sample program
+
+Change the connection string
+
+`var cluster = new couchbase.Cluster('couchbases://cb-opensource-k8s-0000.cb-opensource-k8s.cbdb.svc?certpath=./ca.crt');`
+
+Download the root certificate for the Couchbase cluster 
+
+
+### Create namespace for app tier
+
+```
+
+$ sudo kubectl create namespace apps
+namespace/apps created
+
+```
+
+Deploy the app pod
+
+```
+$ sudo kubectl create -f app_pod.yaml --namespace apps
+pod/app01 created
+```
+
+
+*  Run the sample python program to upsert a document into couchbase cluster
+
+Login to the pods shell/exec into app pod
+
+
+```
+
+$ sudo kubectl exec -ti app01 bash --namespace apps
+
+```
+
+Edit the program with FQDN of the pod
+
+Run below command after exec'ing into the couchbase pod
+
+`$ sudo kubectl exec -ti cb-opensource-k8s-0000 bash --namespace cbdb`
+
+
+```
+root@cb-opensource-k8s-0000:/# hostname -f
+cb-opensource-k8s-0000.cb-opensource-k8s.cbdb.svc.cluster.local
+```
+
+Edit the program with correct connection string
+
+Connection string for me looks like below:
+
+`cluster = Cluster('couchbase://cb-opensource-k8s-0000.cb-opensource-k8s.cbdb.svc.cluster.local')`
+
+Run the program
+
+```
+root@app01:/# python python_sdk_example.py
+CB Server connection PASSED
+Open the bucket...
+Done...
+Upserting a document...
+Done...
+Getting non-existent key. Should fail..
+Got exception for missing doc
+Inserting a doc...
+Done...
+Getting an existent key. Should pass...
+Value for key 'babyliz_liz'
+
+Value for key 'babyliz_liz'
+{u'interests': [u'Holy Grail', u'Kingdoms and Dungeons'], u'type': u'Royales', u'name': u'Baby Liz', u'email': u'babyliz@cb.com'}
+Delete a doc with key 'u:baby_arthur'...
+Done...
+Value for key [u:baby_arthur]
+Got exception for missing doc for key [u:baby_arthur] with error <Key=u'u:baby_arthur', RC=0xD[The key does not exist on the server], Operational Error, Results=1, C Source=(src/multiresult.c,316), Tracing Output={"u:baby_arthur": {"c": "0000000036fb5729/523b08473029eae3", "b": "default", "i": 1754553113405298788, "l": "172.17.0.9:36304", "s": "kv:Unknown", "r": "cb-opensource-k8s-0001.cb-opensource-k8s.cbdb.svc:11210", "t": 2500000}}>
+Closing connection to the bucket...
+root@app01:/#
+```
+
+Upserted document should looks like this
+
+![upsert-doc](assets/5-upserted-doc.png)
+
 ## Conclusion
 We deployed Couchbase Autonomous Operator with version 1.2 on minikue version: v1.2.0. Couchbase cluster requires admission controller, RBACs with role limited to the namespace (more secure). CRD deployed has cluster wide scope, but that is by design. Couchbase cluster deployed had PV support and customer x509 certs. 
 We saw how how Couchbase cluster self-heals, and brings cluster up and healthy back without any user intervention.
+
+We also saw how to install Couchbase python sdk in a Applicaiton pod deployed in its namespace and we can have that application talk to Couchbase server and perform CRUD operations.
+
+
 ## Cleanup
+
+Perform these steps below to un-config all the k8s assets created.
 
 ```
 sudo kubectl delete -f secret.yaml --namespace cbdb
@@ -205,4 +331,5 @@ sudo kubectl delete serviceaccount couchbase-operator --namespace cbdb
 sudo kubectl delete -f operator-deployment.yaml --namespace cbdb
 sudo kubectl get deployments --namespace cbdb
 sudo kubectl delete -f admission.yaml --namespace cbdb
+sudo kubectl delete pod app01 --namespace apps
 ```
