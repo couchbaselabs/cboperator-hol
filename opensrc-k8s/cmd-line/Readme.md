@@ -46,6 +46,14 @@
 ## Environment details
 * minikue on macos : v1.2.0
 
+* Set the vCPUs and Memory to 4 and 4GiB so that Couchbase operator would work on laptop
+
+
+```
+sudo minikube config set memory 4096
+sudo minikube config set cpus 4
+```
+
 `$ sudo minikube config view`
 	
 	- cpus: 4
@@ -111,7 +119,7 @@ First we will create a namespace to localize our deployment
 ### Deploy TLS certs in namespace cbdb
 Using help file below, make sure use appropriate namespace, here I have used 'cbdb'
 
-Link is [here] (https://raw.githubusercontent.com/ramdhakne/blogs/master/external-connectivity/x509-help.txt)
+Link is ![here] (https://raw.githubusercontent.com/ramdhakne/blogs/master/external-connectivity/x509-help.txt)
 
 ### Query the TLS secrets
 	
@@ -272,6 +280,8 @@ Edit the program with correct connection string
 Connection string for me looks like below:
 
 `cluster = Cluster('couchbase://cb-opensource-k8s-0000.cb-opensource-k8s.cbdb.svc.cluster.local')`
+
+Since both the namespaces in minikube share same kube-dns 
 
 Run the program
 
