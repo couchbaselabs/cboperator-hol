@@ -119,7 +119,7 @@ First we will create a namespace to localize our deployment
 ### Deploy TLS certs in namespace cbdb
 Using help file below, make sure use appropriate namespace, here I have used 'cbdb'
 
-Link is ![here] (https://raw.githubusercontent.com/ramdhakne/blogs/master/external-connectivity/x509-help.txt)
+Link is ![here](https://raw.githubusercontent.com/ramdhakne/blogs/master/external-connectivity/x509-help.txt)
 
 ### Query the TLS secrets
 	
