@@ -221,7 +221,7 @@ sudo kubectl apply -f couchbase-persistent-cluster-tls-k8s-minikube.yaml --names
 
 Its exact opposite of scaling up, reduce the cluster to any number. But not less than 3. Couchbase MVP is 3 nodes.
 
-## Run sample NodeJS application
+## Run sample Python application
 
 ### Create namespace for app tier
 
