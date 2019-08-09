@@ -8,232 +8,6 @@ The following section will walk through the steps to create the GKS cluster.  Th
 
 ### Step 1. Clone GKS Creation Scripts repo
 
-```
-  $ git clone https://github.com/couchbaselabs/cbsummit-create-eks-cluster.git
-  Cloning into 'create_eks_cluster'...
-  remote: Enumerating objects: 30, done.
-  remote: Counting objects: 100% (30/30), done.
-  remote: Compressing objects: 100% (21/21), done.
-  remote: Total 30 (delta 13), reused 20 (delta 7), pack-reused 0
-  Unpacking objects: 100% (30/30), done.
-```
-
-
-### Step 2. CD into newly clone directory
-```
-$ cd cbsummit-create-eks-cluster
-$ ls -l
-total 48
--rw-r--r--  1 mmaster  staff  4633 14 Jan 06:40 README.md
--rw-r--r--  1 mmaster  staff  8893 14 Jan 06:40 create_eks_script.py
--rw-r--r--  1 mmaster  staff  1383 14 Jan 06:55 parameters.py
-```
-More details on this script can be found in the [README.md](https://github.com/couchbaselabs/cbsummit-create-eks-cluster/blob/master/README.md) provided within the repository
-
-### Step 3. Change the parameters for your set up
-
-The following shows the list of parameters in [parameters.py](https://github.com/couchbaselabs/cbsummit-create-eks-cluster/blob/master/parameters.py) that you are likely to change. It is required to change VPC_STACK_NAME, EKS_CLUSTER_NAME, EKS_NODES_STACK_NAME, and EKS_NODE_GROUP_NAME. The value of EKS_CLUSTER_NAME is the cluster name that will be provided to the participants/users. All other parameters can be left as default or adjusted based on the requirements of the summit, e.g. number of participants expected:
-
-| Parameter Name              | Description |
-| --------------------- | ----------- |
-|VPC_STACK_NAME  |  This is the name of the Stack for the VPC|
-| EKS_CLUSTER_NAME  | This is the name of the GKS Cluster to create|
-|EKS_NODES_STACK_NAME  | This is the name of the Stack for the EC2 worker nodes|
-|EKS_NODE_GROUP_NAME  | This is the name of the Autoscaling group for the EC2 worker nodes|
-|EKS_NODE_AS_GROUP_MIN  | The minimum size of the autoscaling group|
-|EKS_NODE_AS_GROUP_MAX  | The maximum size of the autoscaling group|
-|EKS_NODE_AS_GROUP_DESIRED | The desired cluster size, should be >= * EKS_NODE_AS_GROUP_MIN and <= EKS_NODE_AS_GROUP_MAX|
-|EKS_NODE_INSTANCE_TYPE. | The type of instance you want to use as a worker node|
-|EKS_IMAGE_ID  | This only needs to be changed if you are not deploying into the us-east-2 region.|
-|EKS_NODE_VOLUME_SIZE  | If you need additional disk space|
-
-```
-$ cat parameters.py
-ATTEMPTS=10
-WAIT_SEC=120
-
-#===============================
-#	VPC Information
-#===============================
-VPC_STACK_NAME="ckteststackmm"
-VPC_TEMPLATE="https://amazon-eks.s3-us-west-2.amazonaws.com/cloudformation/2018-12-10/amazon-eks-vpc-sample.yaml"
-
-#===============================
-#	GKS Cluster
-#===============================
-EKS_CLUSTER_NAME="cktestclustermm"
-EKS_ROLE_ARN="arn:aws:iam::669678783832:role/cbd-eks-role"
-
-#===============================
-#	GKS Worker Nodes
-#===============================
-EKS_NODES_TEMPLATE="https://amazon-eks.s3-us-west-2.amazonaws.com/cloudformation/2018-12-10/amazon-eks-nodegroup.yaml"
-EKS_NODES_STACK_NAME="cktestclustermm-nodes"
-EKS_NODE_GROUP_NAME="cktestclustermm-eks-nodes"
-EKS_NODE_AS_GROUP_MIN="3"
-EKS_NODE_AS_GROUP_MAX="3"
-EKS_NODE_AS_GROUP_DESIRED="3"
-
-#Amazon instance type - Refer to Amazon Documentation for available values
-EKS_NODE_INSTANCE_TYPE="m4.xlarge"
-
-#Amazon Image Id - Refer to https://docs.aws.amazon.com/eks/latest/userguide/getting-started.html for full list.  The region is important for AMI to use.  The below is for us-east-2
-EKS_IMAGE_ID="ami-053cbe66e0033ebcf"
-
-#The IAM Key to use
-EKS_KEY_NAME="cb-day-se"
-
-EKS_NODE_VOLUME_SIZE="20"
-
-#===============================
-#	Secondary User
-#===============================
-AWS_SECOND_USER_ARN="arn:aws:iam::669678783832:user/cb-day-participant"
-AWS_SECOND_USER_NAME="cb-day-participant"
-```
-
-**GKS_IMAGE_ID**
-If you are not deploying to the us-east-2 region, first validate that the region supports GKS, and also that you are using the correct AMI for that region.  The following table lists the regions with the assigned regions for each SE team, i.e. US & Canada should use us-east-2 and EMEA should use eu-west-1.
-
-The list of AMI’s for available regions can be found at the below [here](https://docs.aws.amazon.com/eks/latest/userguide/getting-started.html#eks-launch-workers).
-
-
-### Step 4:  Execute the create_gks_script
-
-This step will create the GKS cluster and the nodes as defined in the [parameters.py](https://github.com/couchbaselabs/cbsummit-create-eks-cluster/blob/master/parameters.py) file. The name of the GKS cluster defined earlier in the parameters file is what will have to be provided to the participants/users. This will appear in the output of the command, e.g. _cktestclustermm_ as shown in the example below for the aws GKS create-cluster command. Verify that the correct cluster name has been issued in that command and provide that cluster name to the participants.
-
-See the [README.md](https://github.com/couchbaselabs/cbsummit-create-eks-cluster/blob/master/README.md) for more details.
-
-```
-$ python create_eks_script.py install
-
---------------------------------------
-Starting installation of GKS from step 0
---------------------------------------
---------------------------------------
-Running aws cloudformation create-stack --stack-name ckteststackmm --template-url https://amazon-eks.s3-us-west-2.amazonaws.com/cloudformation/2018-12-10/amazon-eks-vpc-sample.yaml
---------------------------------------
-Executing command : aws cloudformation create-stack --stack-name ckteststackmm --template-url https://amazon-eks.s3-us-west-2.amazonaws.com/cloudformation/2018-12-10/amazon-eks-vpc-sample.yaml
-{
-
-    "StackId": "arn:aws:cloudformation:us-east-2:669678783832:stack/ckteststackmm/d278e040-265a-11e9-a4be-02649197f7a0"
-
-}
-
-Checking completion status...
-Checking attempt #0
-Status :: "CREATE_IN_PROGRESS"
-Checking attempt #1
-Status :: "CREATE_COMPLETE"
-Adding key SecurityGroups with value sg-0677229e743e97317
-Adding key VpcId with value vpc-074ac91b494db16f2
-Adding key SubnetIds with value subnet-06d16b69a017ce7a6,subnet-07d794f0b706800a3,subnet-0a4aee63ad0296add
---------------------------------------
-Running aws GKS create-cluster --name cktestclustermm --role-arn arn:aws:iam::669678783832:role/cbd-eks-role --resources-vpc-config subnetIds=subnet-06d16b69a017ce7a6,subnet-07d794f0b706800a3,subnet-0a4aee63ad0296add,securityGroupIds=sg-0677229e743e97317
---------------------------------------
-Executing command : aws GKS create-cluster --name cktestclustermm --role-arn arn:aws:iam::669678783832:role/cbd-eks-role --resources-vpc-config subnetIds=subnet-06d16b69a017ce7a6,subnet-07d794f0b706800a3,subnet-0a4aee63ad0296add,securityGroupIds=sg-0677229e743e97317
-{
-
-    "cluster": {
-
-        "status": "CREATING",
-
-        "name": "cktestclustermm",
-
-        "certificateAuthority": {},
-
-        "roleArn": "arn:aws:iam::669678783832:role/cbd-eks-role",
-
-        "resourcesVpcConfig": {
-
-            "subnetIds": [
-
-                "subnet-06d16b69a017ce7a6",
-
-                "subnet-07d794f0b706800a3",
-
-                "subnet-0a4aee63ad0296add"
-
-            ],
-
-            "vpcId": "vpc-074ac91b494db16f2",
-
-            "securityGroupIds": [
-
-                "sg-0677229e743e97317"
-
-            ]
-
-        },
-
-        "version": "1.11",
-
-        "arn": "arn:aws:eks:us-east-2:669678783832:cluster/cktestclustermm",
-
-        "platformVersion": "eks.1",
-
-        "createdAt": 1549050837.583
-
-    }
-
-}
-
-Checking completion status...
-Checking attempt #0
-Status :: "CREATING"
-Checking attempt #1
-Status :: "CREATING"
-Checking attempt #2
-Status :: "CREATING"
-Checking attempt #3
-Status :: "CREATING"
-Checking attempt #4
-Status :: "CREATING"
-Checking attempt #5
-Status :: "ACTIVE"
---------------------------------------
-Executing command : aws GKS update-kubeconfig --name cktestclustermm
-Updated context arn:aws:eks:us-east-2:669678783832:cluster/cktestclustermm in /Users/mmaster/.kube/config
-
---------------------------------------
-Running aws cloudformation create-stack --stack-name cktestclustermm-nodes --template-url https://amazon-eks.s3-us-west-2.amazonaws.com/cloudformation/2018-12-10/amazon-eks-nodegroup.yaml --parameters ParameterKey=ClusterName,ParameterValue=cktestclustermm ParameterKey=ClusterControlPlaneSecurityGroup,ParameterValue=sg-0677229e743e97317 ParameterKey=NodeGroupName,ParameterValue=cktestclustermm-eks-nodes ParameterKey=NodeAutoScalingGroupMinSize,ParameterValue=3 ParameterKey=NodeAutoScalingGroupMaxSize,ParameterValue=3 ParameterKey=NodeInstanceType,ParameterValue=m4.4xlarge ParameterKey=NodeImageId,ParameterValue=ami-053cbe66e0033ebcf ParameterKey=KeyName,ParameterValue=cb-day-se ParameterKey=VpcId,ParameterValue=vpc-074ac91b494db16f2 ParameterKey=Subnets,ParameterValue='subnet-06d16b69a017ce7a6\,subnet-07d794f0b706800a3\,subnet-0a4aee63ad0296add' ParameterKey=NodeVolumeSize,ParameterValue=20 --capabilities CAPABILITY_IAM
---------------------------------------
-Executing command : aws cloudformation create-stack --stack-name cktestclustermm-nodes --template-url https://amazon-eks.s3-us-west-2.amazonaws.com/cloudformation/2018-12-10/amazon-eks-nodegroup.yaml --parameters ParameterKey=ClusterName,ParameterValue=cktestclustermm ParameterKey=ClusterControlPlaneSecurityGroup,ParameterValue=sg-0677229e743e97317 ParameterKey=NodeGroupName,ParameterValue=cktestclustermm-eks-nodes ParameterKey=NodeAutoScalingGroupMinSize,ParameterValue=3 ParameterKey=NodeAutoScalingGroupMaxSize,ParameterValue=3 ParameterKey=NodeInstanceType,ParameterValue=m4.4xlarge ParameterKey=NodeImageId,ParameterValue=ami-053cbe66e0033ebcf ParameterKey=KeyName,ParameterValue=cb-day-se ParameterKey=VpcId,ParameterValue=vpc-074ac91b494db16f2 ParameterKey=Subnets,ParameterValue='subnet-06d16b69a017ce7a6\,subnet-07d794f0b706800a3\,subnet-0a4aee63ad0296add' ParameterKey=NodeVolumeSize,ParameterValue=20 --capabilities CAPABILITY_IAM
-{
-
-    "StackId": "arn:aws:cloudformation:us-east-2:669678783832:stack/cktestclustermm-nodes/8640ef40-265c-11e9-8cdb-0659c08a3f80"
-
-}
-
-Checking completion status...
-Checking attempt #0
-Status :: "CREATE_IN_PROGRESS"
-Checking attempt #1
-Status :: "CREATE_IN_PROGRESS"
-Checking attempt #2
-Status :: "CREATE_COMPLETE"
---------------------------------------
-Executing command : curl -O https://amazon-eks.s3-us-west-2.amazonaws.com/cloudformation/2018-12-10/aws-auth-cm.yaml
-  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
-
-                                 Dload  Upload   Total   Spent    Left  Speed
-
-100   282  100   282    0     0    828      0 --:--:-- --:--:-- --:--:--   826
-
-Adding key NodeInstanceRole with value arn:aws:iam::669678783832:role/cktestclustermm-nodes-NodeInstanceRole-9TNSS18FKU3L
-Adding key NodeSecurityGroup with value sg-0c3e6913ef7c0f3cf
---------------------------------------
-Executing command : kubectl apply -f aws-auth-cm.yaml
-configmap/aws-auth created
-
---------------------------------------
-Executing command : kubectl get -n kube-system configmap/aws-auth -o yaml > aws-auth-patch.yaml
---------------------------------------
-Executing command : kubectl apply -n kube-system -f aws-auth-patch.yaml
-configmap/aws-auth configured
-```
-
-This script will then run through the different steps to create the GKS Cluster, which can take up to 20 minutes. When completed you should see the output shown above.
 
 
 
@@ -247,3 +21,314 @@ ip-192-168-166-206.us-east-2.compute.internal   Ready	<none>   11m   v1.11.5
 ip-192-168-248-36.us-east-2.compute.internal	Ready	<none>   11m   v1.11.5
 ip-192-168-64-16.us-east-2.compute.internal 	Ready	<none>   11m   v1.11.5
 ```
+
+
+--- ----------
+This page shows how to install the Google Cloud SDK, initialize it, and run core gcloud commands from the command-line.
+
+# Before you begin
+
+➜  ~ python -V
+Python 2.7.10
+
+Download
+https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-257.0.0-darwin-x86_64.tar.gz
+
+
+Install 
+➜  google-cloud-sdk ./install.sh  
+Welcome to the Google Cloud SDK!
+
+To help improve the quality of this product, we collect anonymized usage data
+and anonymized stacktraces when crashes are encountered; additional information
+is available at <https://cloud.google.com/sdk/usage-statistics>. You may choose
+to opt out of this collection now (by choosing 'N' at the below prompt), or at
+any time in the future by running the following command:
+
+    gcloud config set disable_usage_reporting true
+
+Do you want to help improve the Google Cloud SDK (Y/n)?  Y
+
+
+Your current Cloud SDK version is: 257.0.0
+The latest available version is: 257.0.0
+
+┌────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│                                                 Components                                                 │
+├───────────────┬──────────────────────────────────────────────────────┬──────────────────────────┬──────────┤
+│     Status    │                         Name                         │            ID            │   Size   │
+├───────────────┼──────────────────────────────────────────────────────┼──────────────────────────┼──────────┤
+│ Not Installed │ App Engine Go Extensions                             │ app-engine-go            │ 56.4 MiB │
+│ Not Installed │ Cloud Bigtable Command Line Tool                     │ cbt                      │  7.3 MiB │
+│ Not Installed │ Cloud Bigtable Emulator                              │ bigtable                 │  6.6 MiB │
+│ Not Installed │ Cloud Datalab Command Line Tool                      │ datalab                  │  < 1 MiB │
+│ Not Installed │ Cloud Datastore Emulator                             │ cloud-datastore-emulator │ 18.4 MiB │
+│ Not Installed │ Cloud Datastore Emulator (Legacy)                    │ gcd-emulator             │ 38.1 MiB │
+│ Not Installed │ Cloud Firestore Emulator                             │ cloud-firestore-emulator │ 36.1 MiB │
+│ Not Installed │ Cloud Pub/Sub Emulator                               │ pubsub-emulator          │ 34.8 MiB │
+│ Not Installed │ Cloud SQL Proxy                                      │ cloud_sql_proxy          │  3.7 MiB │
+│ Not Installed │ Emulator Reverse Proxy                               │ emulator-reverse-proxy   │ 14.5 MiB │
+│ Not Installed │ Google Cloud Build Local Builder                     │ cloud-build-local        │  5.9 MiB │
+│ Not Installed │ Google Container Registry's Docker credential helper │ docker-credential-gcr    │  1.8 MiB │
+│ Not Installed │ gcloud Alpha Commands                                │ alpha                    │  < 1 MiB │
+│ Not Installed │ gcloud Beta Commands                                 │ beta                     │  < 1 MiB │
+│ Not Installed │ gcloud app Java Extensions                           │ app-engine-java          │ 85.9 MiB │
+│ Not Installed │ gcloud app PHP Extensions                            │ app-engine-php           │ 21.9 MiB │
+│ Not Installed │ gcloud app Python Extensions                         │ app-engine-python        │  6.0 MiB │
+│ Not Installed │ gcloud app Python Extensions (Extra Libraries)       │ app-engine-python-extras │ 28.5 MiB │
+│ Not Installed │ kubectl                                              │ kubectl                  │  < 1 MiB │
+│ Installed     │ BigQuery Command Line Tool                           │ bq                       │  < 1 MiB │
+│ Installed     │ Cloud SDK Core Libraries                             │ core                     │ 11.3 MiB │
+│ Installed     │ Cloud Storage Command Line Tool                      │ gsutil                   │  3.6 MiB │
+└───────────────┴──────────────────────────────────────────────────────┴──────────────────────────┴──────────┘
+To install or remove components at your current SDK version [257.0.0], run:
+  $ gcloud components install COMPONENT_ID
+  $ gcloud components remove COMPONENT_ID
+
+To update your SDK installation to the latest version [257.0.0], run:
+  $ gcloud components update
+
+
+
+To take a quick anonymous survey, run:
+  $ gcloud alpha survey
+
+
+Modify profile to update your $PATH and enable shell command 
+completion?
+
+Do you want to continue (Y/n)?  Y
+
+
+# Initialize the SDK
+
+ gcloud init --console-only
+Welcome! This command will take you through the configuration of gcloud.
+
+Settings from your current configuration [couchbase-helm-config] are:
+compute:
+  region: europe-west3
+  zone: europe-west3-a
+core:
+  account: jose.molina@couchbase.com
+  disable_usage_reporting: 'False'
+  project: my-couchbase-helm
+
+Pick configuration to use:
+ [1] Re-initialize this configuration [couchbase-helm-config] with new settings 
+ [2] Create a new configuration
+ [3] Switch to and re-initialize existing configuration: [default]
+Please enter your numeric choice:  2
+
+Enter configuration name. Names start with a lower case letter and 
+contain only lower case letters a-z, digits 0-9, and hyphens '-':  my-couchbase-gke
+Your current configuration has been set to: [my-couchbase-gke]
+
+You can skip diagnostics next time by using the following flag:
+  gcloud init --skip-diagnostics
+
+Network diagnostic detects and fixes local network connection issues.
+Checking network connection...done.                                            
+Reachability Check passed.
+Network diagnostic passed (1/1 checks passed).
+
+Choose the account you would like to use to perform operations for 
+this configuration:
+ [1] jose.molina@couchbase.com
+ [2] Log in with a new account
+Please enter your numeric choice:  1
+
+You are logged in as: [jose.molina@couchbase.com].
+
+Pick cloud project to use: 
+ [1] couchbase-gke
+ [2] couchbase-se-west-us
+ [3] helmchart
+ [4] my-couchbase-helm
+ [5] Create a new project
+Please enter numeric choice or text value (must exactly match list 
+item):  1
+
+Your current project has been set to: [couchbase-gke].
+
+Not setting default zone/region (this feature makes it easier to use
+[gcloud compute] by setting an appropriate default value for the
+--zone and --region flag).
+See https://cloud.google.com/compute/docs/gcloud-compute section on how to set
+default compute region and zone manually. If you would like [gcloud init] to be
+able to do this for you the next time you run it, make sure the
+Compute Engine API is enabled for your project on the
+https://console.developers.google.com/apis page.
+
+Your Google Cloud SDK is configured and ready to use!
+
+* Commands that require authentication will use jose.molina@couchbase.com by default
+* Commands will reference project `couchbase-gke` by default
+Run `gcloud help config` to learn how to change individual settings
+
+This gcloud configuration is called [my-couchbase-gke]. You can create additional configurations if you work with multiple accounts and/or projects.
+Run `gcloud topic configurations` to learn more.
+
+Some things to try next:
+
+* Run `gcloud --help` to see the Cloud Platform services you can interact with. And run `gcloud help COMMAND` to get help on any gcloud command.
+* Run `gcloud topic --help` to learn about advanced features of the SDK like arg files and output formatting
+
+
+gcloud auth list
+      Credentialed Accounts
+ACTIVE  ACCOUNT
+*       jose.molina@couchbase.com
+
+To set the active account, run:
+    $ gcloud config set account `ACCOUNT`
+    
+    
+
+gcloud config list
+[core]
+account = jose.molina@couchbase.com
+disable_usage_reporting = False
+project = couchbase-gke
+
+Your active configuration is: [my-couchbase-gke]
+
+gcloud info
+Google Cloud SDK [257.0.0]
+
+Platform: [Mac OS X, x86_64] ('Darwin', 'EMEA-JoseMolina.local', '18.6.0', 'Darwin Kernel Version 18.6.0: Thu Apr 25 23:16:27 PDT 2019; root:xnu-4903.261.4~2/RELEASE_X86_64', 'x86_64', 'i386')
+Locale: ('en_GB', 'UTF-8')
+Python Version: [2.7.10 (default, Feb 22 2019, 21:55:15)  [GCC 4.2.1 Compatible Apple LLVM 10.0.1 (clang-1001.0.37.14)]]
+Python Location: [/System/Library/Frameworks/Python.framework/Versions/2.7/Resources/Python.app/Contents/MacOS/Python]
+Site Packages: [Disabled]
+
+Installation Root: [/Users/josemolina/google-cloud-sdk]
+Installed Components:
+  core: [2019.08.02]
+  gsutil: [4.41]
+  bq: [2.0.46]
+System PATH: [/Users/josemolina/google-cloud-sdk/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/share/dotnet:~/.dotnet/tools:/Library/Frameworks/Mono.framework/Versions/Current/Commands:/Applications/Xamarin Workbooks.app/Contents/SharedSupport/path-bin]
+Python PATH: [/Users/josemolina/google-cloud-sdk/lib/third_party:/Users/josemolina/google-cloud-sdk/lib:/System/Library/Frameworks/Python.framework/Versions/2.7/lib/python27.zip:/System/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/:/System/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/plat-darwin:/System/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/plat-mac:/System/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/plat-mac/lib-scriptpackages:/System/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/lib-tk:/System/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/lib-old:/System/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/lib-dynload]
+Cloud SDK on PATH: [True]
+Kubectl on PATH: [/usr/local/bin/kubectl]
+
+Installation Properties: [/Users/josemolina/google-cloud-sdk/properties]
+User Config Directory: [/Users/josemolina/.config/gcloud]
+Active Configuration Name: [my-couchbase-gke]
+Active Configuration Path: [/Users/josemolina/.config/gcloud/configurations/config_my-couchbase-gke]
+
+Account: [jose.molina@couchbase.com]
+Project: [couchbase-gke]
+
+Current Properties:
+  [core]
+    project: [couchbase-gke]
+    account: [jose.molina@couchbase.com]
+    disable_usage_reporting: [False]
+
+Logs Directory: [/Users/josemolina/.config/gcloud/logs]
+Last Log File: [/Users/josemolina/.config/gcloud/logs/2019.08.08/19.11.01.037516.log]
+
+git: [git version 2.20.1 (Apple Git-117)]
+ssh: [OpenSSH_7.9p1, LibreSSL 2.7.3]
+
+
+Set default region
+
+gcloud config set compute/region europe-west3
+
+Updated property [compute/region].
+
+# Network
+
+gcloud compute networks create my-network --subnet-mode custom
+Created [https://www.googleapis.com/compute/v1/projects/my-couchbase-helm/global/networks/my-network].
+NAME        SUBNET_MODE  BGP_ROUTING_MODE  IPV4_RANGE  GATEWAY_IPV4
+my-network  CUSTOM       REGIONAL
+
+Instances on this network will not be reachable until firewall rules
+are created. As an example, you can allow all internal traffic between
+instances as well as SSH, RDP, and ICMP by running:
+
+$ gcloud compute firewall-rules create <FIREWALL_NAME> --network my-network --allow tcp,udp,icmp --source-ranges <IP_RANGE>
+$ gcloud compute firewall-rules create <FIREWALL_NAME> --network my-network --allow tcp:22,tcp:3389,icmp
+
+
+gcloud compute networks subnets create my-subnet-europe-west1 --network my-network --region europe-west1 --range 10.0.0.0/12
+Created [https://www.googleapis.com/compute/v1/projects/my-couchbase-helm/regions/europe-west1/subnetworks/my-subnet-europe-west1].
+NAME                    REGION        NETWORK     RANGE
+my-subnet-europe-west1  europe-west1  my-network  10.0.0.0/12
+➜  ~ gcloud compute networks subnets create my-subnet-europe-west3 --network my-network --region europe-west3 --range 10.16.0.0/12
+Created [https://www.googleapis.com/compute/v1/projects/my-couchbase-helm/regions/europe-west3/subnetworks/my-subnet-europe-west3].
+NAME                    REGION        NETWORK     RANGE
+my-subnet-europe-west3  europe-west3  my-network  10.16.0.0/12
+
+
+
+gcloud compute firewall-rules create my-network-allow-all-private --network my-network --direction INGRESS --source-ranges 10.0.0.0/8 --allow all
+Creating firewall...⠧Created [https://www.googleapis.com/compute/v1/projects/my-couchbase-helm/global/firewalls/my-network-allow-all-private].                                       
+Creating firewall...done.                                                                                                                                                            
+NAME                          NETWORK     DIRECTION  PRIORITY  ALLOW  DENY  DISABLED
+my-network-allow-all-private  my-network  INGRESS    1000      all          False
+
+
+
+## Troubleshooting
+
+➜  ~ gcloud container clusters create my-cluster-europe-west1-b --machine-type n1-standard-2 --cluster-version 1.13.6-gke.0 --region europe-west1 --network helm-network --subnetwork my-subnet-europe-west1 --num-nodes 1
+WARNING: In June 2019, node auto-upgrade will be enabled by default for newly created clusters and node pools. To disable it, use the `--no-enable-autoupgrade` flag.
+WARNING: Starting in 1.12, new clusters will have basic authentication disabled by default. Basic authentication can be enabled (or disabled) manually using the `--[no-]enable-basic-auth` flag.
+WARNING: Starting in 1.12, new clusters will not have a client certificate issued. You can manually enable (or disable) the issuance of the client certificate using the `--[no-]issue-client-certificate` flag.
+WARNING: Currently VPC-native is not the default mode during cluster creation. In the future, this will become the default mode and can be disabled using `--no-enable-ip-alias` flag. Use `--[no-]enable-ip-alias` flag to suppress this warning.
+WARNING: Starting in 1.12, default node pools in new clusters will have their legacy Compute Engine instance metadata endpoints disabled by default. To create a cluster with legacy instance metadata endpoints disabled in the default node pool, run `clusters create` with the flag `--metadata disable-legacy-endpoints=true`.
+WARNING: Your Pod address range (`--cluster-ipv4-cidr`) can accommodate at most 1008 node(s). 
+This will enable the autorepair feature for nodes. Please see https://cloud.google.com/kubernetes-engine/docs/node-auto-repair for more information on node autorepairs.
+ERROR: (gcloud.container.clusters.create) ResponseError: code=400, message=Master version "1.13.6-gke.0" is unsupported.
+➜  ~ gcloud container clusters create my-cluster-europe-west1-b --machine-type n1-standard-2 **--cluster-version 1.13.6-gke.0** --zone europe-west1-b --network helm-network --subnetwork my-subnet-europe-west1 --num-nodes 3
+
+cluster version... 
+
+gcloud container get-server-config --region europe-west1
+
+Fetching server config for europe-west1
+defaultClusterVersion: 1.12.8-gke.10
+defaultImageType: COS
+validImageTypes:
+- COS_CONTAINERD
+- WINDOWS_SAC
+- COS
+- UBUNTU
+validMasterVersions:
+- 1.13.7-gke.8
+- 1.13.6-gke.13
+- 1.12.9-gke.7
+- 1.12.8-gke.10
+- 1.12.7-gke.25
+- 1.11.10-gke.5
+validNodeVersions:
+- 1.14.3-gke.9
+- 1.14.2-gke.9
+- 1.14.1-gke.5
+- 1.13.7-gke.8
+- 1.13.7-gke.0
+- 1.13.6-gke.13
+- 1.13.6-gke.6
+- 1.13.6-gke.5
+- 1.13.6-gke.0
+- 1.13.5-gke.10
+- 1.12.9-gke.7
+- 1.12.9-gke.3
+- 1.12.8-gke.10
+- 1.12.8-gke.7
+- 1.12.8-gke.6
+- 1.12.7-gke.25
+- 1.12.7-gke.24
+- 1.12.7-gke.21
+- 1.12.7-gke.17
+
+
+gcloud container clusters create my-cluster-europe-west1-b --machine-type n1-standard-2  --zone europe-west1-b --network my-network --subnetwork my-subnet-europe-west1 --num-nodes 3 **--cluster-version 1.13.7-gke.8**
+
+
+
+

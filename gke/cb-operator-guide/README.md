@@ -1,20 +1,44 @@
-# Introduction
+# Content
 
-Modern business applications are expected to be up 24/7, even during the planned rollout of new features and periodic patching of Operating System or application. Achieving this feat requires tools and technologies that ensure the speed of development, infrastructure stability and ability to scale.
+1. **Prerequisites**
+2. **Deploy Couchbase Autonomous Operator** 
 
-Container orchestration tools like Kubernetes is revolutionizing the way applications are being developed and deployed today by abstracting away the physical machines it manages. With Kubernetes, you can describe the amount of memory, compute power you want, and have it available without worrying about the underlying infrastructure.
+	2.1. **Download Operator package**
+	
+	2.2. **Create a namespace**
+	
+	2.3. **Install CRD**
+	
+	2.4. **Create a Operator Role**
+	
+	2.5. **Create a Service Account**
+	
+	2.6. **Deploy Couchbase Operator**
 
-Pods (unit of computing resource) and containers (where the applications are run) in Kubernetes environment can self-heal in the event of any type of failure. They are, in essence, ephemeral. This works just fine when you have a stateless microservice but applications that require their state maintained for example database management systems like Couchbase, you need to be able to externalize the storage from the lifecycle management of Pods & Containers so that the data can be recovered quickly by simply remounting the storage volumes to a newly elected Pod.
+	2.7. **Deploy Couchbase cluster using persistent volumes**
 
-This is what Persistent Volumes enables in Kubernetes based deployments. Couchbase Autonomous Operator is one of the first adopters of this technology to make recovery from any infrastructure-based failure seamless and most importantly faster.
+	2.8. **X509 Certificates**
 
-In this article we will take a step-by-step look at how you can deploy Couchbase cluster on Google Cloud Kubernetes Service (Google Cloud GKS):
-* using multiple Couchbase server groups that can be mapped to a separate availability zone for high availability
-* leverage persistent volumes for fast recovery from infrastructure failure.
+	2.9. **Availability Zones**
 
-![](https://blog.couchbase.com/wp-content/uploads/2019/04/K8-Animation.gif)
+	2.10. **Create user namespace for Couchbase Client - SDK**
+	
+3. **Operations**
 
-Figure 1: Couchbase Autonomous Operator for Kubernetes self-monitors and self-heals Couchbase database platform.
+	3.1. **Scaling - On demand scaling - up & down**
+
+	3.2. **Self-recovery**
+
+	3.3. **Couchbase automated upgrade**
+
+	3.4. **Create backup**
+	
+4. **Running sample application using SDK** 
+	
+	
+# Scope
+
+![cluster image](assets/cluster-gke.png)
 
 # Prerequisites
 
@@ -23,7 +47,7 @@ There are three important prerequisites before we begin the deployment of Couchb
 1. You have installed Kubernetes and [Google Cloud SDK](https://cloud.google.com/sdk/) on your local machine as described in the [guide](./guides/prerequisite-tools.md).
 2. Create Google Account and Setup Google Cloud GKS cluster as per the [GKS Instruction Guide](./guides/gks-setup.md).
 
-In the labs below we will be using us-east-1 as the region and us-east-1a/1b/1c as three availability-zones but you can deploy to any region/zones by making minor changes to YAML files in the examples below.
+In the labs below we will be using europe-west-3 as the region and europe-west-3a/3b/3c as three availability-zones but you can deploy to any region/zones by making minor changes to YAML files in the examples below.
 
 
 # Deploy Couchbase Autonomous Operator
@@ -33,11 +57,13 @@ Before we begin with the setup of Couchbase Operator, run ‘kubectl get nodes�
 
 ```
 $ kubectl get nodes
-
-NAME                              STATUS    ROLES     AGE       VERSION
-ip-192-168-106-132.ec2.internal   Ready     <none>    110m      v1.11.9
-ip-192-168-153-241.ec2.internal   Ready     <none>    110m      v1.11.9
-ip-192-168-218-112.ec2.internal   Ready     <none>    110m      v1.11.9
+NAME                                                  STATUS   ROLES    AGE    VERSION
+gke-my-cluster-europe-we-default-pool-84400c30-69hb   Ready    <none>   16m    v1.13.7-gke.8
+gke-my-cluster-europe-we-default-pool-84400c30-m0bg   Ready    <none>   101s   v1.13.7-gke.8
+gke-my-cluster-europe-we-default-pool-a17b09e8-99kt   Ready    <none>   16m    v1.13.7-gke.8
+gke-my-cluster-europe-we-default-pool-a17b09e8-x6zr   Ready    <none>   100s   v1.13.7-gke.8
+gke-my-cluster-europe-we-default-pool-b1d1dea7-6shq   Ready    <none>   16m    v1.13.7-gke.8
+gke-my-cluster-europe-we-default-pool-b1d1dea7-t53z   Ready    <none>   100s   v1.13.7-gke.8
 ```
 
 After we have tested that we can connect to Kubernetes control plane running on Google Cloud GKS cluster from our local machine, we can now begin with the steps required to deploy Couchbase Autonomous Operator, which is the glue technology enabling Couchbase Server cluster to be managed by Kubernetes.
@@ -60,7 +86,7 @@ bin				operator-deployment.yaml	pillowfight-data-loader.yaml
 
 ### 2) Create a namespace
 
-Create a namespace that will allow cluster resources to be nicely separated between multiple users. To do that we will use a unique namespace called emart for our deployment and later will use this namespace to deploy Couchbase Cluster.
+Create a namespace that will allow cluster resources to be nicely separated between multiple users. To do that we will use a unique namespace called **emart** for our deployment and later will use this namespace to deploy Couchbase Cluster.
 
 In your working directory create a [namespace.yaml](files/namespace.yaml) file with this content and save it in the Couchbase operator directory itself:
 
@@ -80,11 +106,9 @@ Run get namespace command to confirm it is created successfully:
 ```
 $ kubectl get namespaces
 
-output:
-
-NAME          STATUS    AGE
-default       Active    1h
-emart         Active    12s
+NAME          STATUS   AGE
+default       Active   27m
+emart         Active   13s
 ```
 
 From now onwards we will use emart as the namespace for all resource provisioning.
@@ -414,6 +438,224 @@ At this point you can open up a browser and type http://locahost:8091 which will
 ![](https://blog.couchbase.com/wp-content/uploads/2019/04/K8-Cluster--1024x516.png)
 
 Figure 2: Five node Couchbase cluster using persistent volumes.
+
+
+# TLS 
+
+```
+$ git clone http://github.com/OpenVPN/easy-rsa
+Cloning into 'easy-rsa'...
+warning: redirecting to https://github.com/OpenVPN/easy-rsa/
+remote: Enumerating objects: 53, done.
+remote: Counting objects: 100% (53/53), done.
+remote: Compressing objects: 100% (37/37), done.
+remote: Total 1313 (delta 17), reused 44 (delta 16), pack-reused 1260
+Receiving objects: 100% (1313/1313), 5.53 MiB | 2.12 MiB/s, done.
+Resolving deltas: 100% (594/594), done.
+```
+
+```
+$ cd easy-rsa/easyrsa3
+```
+```
+$ ./easyrsa init-pki
+
+  init-pki complete; you may now create a CA or requests.
+  Your newly created PKI dir is: /Users/ram.dhakne/Documents/work/k8s/gcloud/easy-rsa/easyrsa3/pki
+```
+```
+$ ./easyrsa build-ca
+
+Using SSL: openssl OpenSSL 1.0.2p  14 Aug 2018
+
+Enter New CA Key Passphrase:
+Re-Enter New CA Key Passphrase:
+Generating RSA private key, 2048 bit long modulus
+.....................................+++++
+..................................................................................+++++
+e is 65537 (0x10001)
+You are about to be asked to enter information that will be incorporated
+into your certificate request.
+What you are about to enter is what is called a Distinguished Name or a DN.
+There are quite a few fields but you can leave some blank
+For some fields there will be a default value,
+If you enter '.', the field will be left blank.
+```
+
+-----
+Common Name (eg: your user, host, or server name) [Easy-RSA CA]:cb-gke-k8s-tls
+
+CA creation complete and you may now import and sign cert requests.
+Your new CA certificate file for publishing is at:
+/Users/ram.dhakne/Documents/work/k8s/gcloud/easy-rsa/easyrsa3/pki/ca.crt
+
+
+### You may be asked to enter passphrase that was used to generate the CA
+```
+$ ./easyrsa --subject-alt-name=DNS:*.cb-gke-k8s-tls.default.svc build-server-full couchbase-server nopass
+
+Using SSL: openssl OpenSSL 1.0.2p  14 Aug 2018
+Generating a 2048 bit RSA private key
+..................................................+++++
+.........................................................+++++
+writing new private key to '/Users/ram.dhakne/Documents/work/k8s/gcloud/easy-rsa/easyrsa3/pki/private/couchbase-server.key.o8DoOo42GM'
+```
+
+-----
+Using configuration from /Users/ram.dhakne/Documents/work/k8s/gcloud/easy-rsa/easyrsa3/pki/safessl-easyrsa.cnf
+Enter pass phrase for /Users/ram.dhakne/Documents/work/k8s/gcloud/easy-rsa/easyrsa3/pki/private/ca.key:
+Check that the request matches the signature
+Signature ok
+The Subject's Distinguished Name is as follows
+commonName            :ASN.1 12:'couchbase-server'
+Certificate is to be certified until Mar 13 16:52:49 2022 GMT (1080 days)
+
+Write out database with 1 new entries
+Data Base Updated
+```
+$ cp pki/private/couchbase-server.key pkey.key
+```
+```
+$ cp pki/issued/couchbase-server.crt chain.pem
+```
+```
+$ openssl rsa -in pkey.key -out pkey.key.der -outform DER
+```
+writing RSA key
+
+```
+$ openssl rsa -in pkey.key.der -inform DER -out pkey.key -outform PEM
+```
+writing RSA key
+
+### for default namespace
+
+```
+kubectl create secret generic couchbase-server-tls --from-file chain.pem --from-file pkey.key
+```
+```
+kubectl create secret generic couchbase-operator-tls --from-file pki/ca.crt 
+```
+
+### for non-default namespace, say namespace 'k8s'
+```
+kubectl create secret generic couchbase-server-tls --from-file chain.pem --from-file pkey.key --namespace k8s
+```
+```
+kubectl create secret generic couchbase-operator-tls --from-file pki/ca.crt --namespace k8s
+```
+
+## Serving Groups
+
+Setting up server groups is also straightforward, which will be discussed in the following sections when we deploy the couchbase cluster yaml file.
+
+
+## Persistent Volumes
+Persistent Volumes provide way for a reliable way to run stateful applications. Creating them on public cloud is one click operation.
+
+First we can check what storageclass is available for use
+```
+$ kubectl get storageclass
+NAME                 PROVISIONER         AGE
+standard (default) kubernetes.io/gce-pd  1d
+```
+
+
+All the worker nodes available in the k8s cluster should failure domain labels like below
+```
+$ kubectl get nodes -o yaml | grep zone
+failure-domain.beta.kubernetes.io/zone: us-east1-b
+failure-domain.beta.kubernetes.io/zone: us-east1-b
+failure-domain.beta.kubernetes.io/zone: us-east1-d
+failure-domain.beta.kubernetes.io/zone: us-east1-d
+failure-domain.beta.kubernetes.io/zone: us-east1-c
+failure-domain.beta.kubernetes.io/zone: us-east1-c
+```
+
+NOTE: I don’t have to add any failure domain labels, GKE added automatically.
+
+Create PV for each AZ
+```
+$ kubectl apply -f svrgp-pv.yaml
+```
+yaml file svrgp-pv.yaml, can be found here.
+
+Create secret for accessing couchbase UI
+```
+$ kubectl apply -f secret.yaml
+```
+
+Finally deploy couchbase cluster with TLS support, along with Server Groups(which are Az aware) and on persistent volumes (which are also AZ aware).
+```
+$ kubectl apply -f couchbase-persistent-tls-svrgps.yaml
+```
+yaml file couchbase-persistent-tls-svrgps.yaml, can be found here
+
+Give a few mins, and couchbase cluster will come up, and it should look like this
+
+```
+$ kubectl get pods
+NAME            READY STATUS RESTARTS AGE
+cb-gke-demo-0000 1/1 Running 0 1d
+cb-gke-demo-0001 1/1 Running 0 1d
+cb-gke-demo-0002 1/1 Running 0 1d
+cb-gke-demo-0003 1/1 Running 0 1d
+cb-gke-demo-0004 1/1 Running 0 1d
+cb-gke-demo-0005 1/1 Running 0 1d
+cb-gke-demo-0006 1/1 Running 0 1d
+cb-gke-demo-0007 1/1 Running 0 1d
+couchbase-operator-6cbc476d4d-mjhx5 1/1 Running 0 1d
+couchbase-operator-admission-6f97998f8c-cp2mp 1/1 Running 0 1d
+```
+
+Quick check on persistent volumes claims can be done like below
+```
+$ kubectl get pvc
+```
+
+In order to access the Couchbase Cluster UI, either we can port-foward port 8091 of any pod or service itself, on local laptop, or local machine, or it can be exposed via lb.
+
+```
+$ kubectl port-forward service/cb-gke-demo-ui 8091:8091
+```
+port-forward any pod like below
+
+```
+$ kubectl port-forward cb-gke-demo-0002 8091:8091
+```
+
+# Operations
+
+At this point couchbase server is up and running and we have way to access it.
+
+Perform Server Group Autofailover
+Server Group auto-failover
+When a couchbase cluster node fails, then it can auto-failover and without any user intervention ALL the working set is available, no user intervention is needed and Application won’t see downtime.
+
+If Couchbase cluster is setup to be Server Group(SG) or AZ or Rack Zone(RZ) aware, then even if we lose entire SG then entire server groups fails over and working set is available, no user intervention is needed and Application won’t see downtime.
+
+In order to have Disaster Recovery, XDCR can be used to replicate Couchbase data to other Couchbase Cluster. This helps in the event if entire source Data Center or Region is lost, Applications can cut over to Remote site and application won’t see downtime.
+
+Lets take down the Server Group. Before that, lets see how the cluster looks like
+
+
+Delete all pods in group us-east1-b, once the pods are deleted, Couchbase cluster will see that nodes are 
+Operator is constantly watching the cluster definition and it will see that server group is lost, and it spins the 3 pods, re-establishes the claims on the PVs and performs delta-node recovery, and then eventually performs rebalance operation and cluster is healthy again. All with no user-intervention whatsoever.
+
+After sometime, cluster is back and up and running.
+
+
+From the operator logs,
+
+```
+$ kubectl logs -f couchbase-operator-6cbc476d4d-mjhx5
+```
+
+we can see that cluster is automatically rebalanced.
+
+
+
+
 
 # Conclusion
 
