@@ -56,7 +56,7 @@ spec:
       services:
         - data
       serverGroups:
-       - europe-west-c
+       - europe-west1-c
       pod:
         volumeMounts:
           default: pvc-default # /opt/couchbase/var/lib/couchbase

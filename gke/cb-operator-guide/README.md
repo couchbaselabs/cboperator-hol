@@ -54,6 +54,7 @@ In the labs below we will be using europe-west-3 as the region and europe-west-3
 
 Before we begin with the setup of Couchbase Operator, run ‘kubectl get nodes’ command from the local machine to confirm GKS cluster is up and running.
 
+![europe-west3 GKE cluster](./assets/step00-gke-cluster-europe-west1.png)
 
 ```
 $ kubectl get nodes
@@ -107,8 +108,8 @@ Run get namespace command to confirm it is created successfully:
 $ kubectl get namespaces
 
 NAME          STATUS   AGE
-default       Active   27m
-emart         Active   13s
+default       Active   25m
+emart         Active   34s
 ```
 
 From now onwards we will use emart as the namespace for all resource provisioning.
@@ -188,7 +189,7 @@ If you run the this command immediately after the Operator is deployed, the outp
 
 ```
 NAME           	    DESIRED    CURRENT     UP-TO-DATE      AVAILABLE        AGE
-couchbase-operator   1          1          1               0               10s
+couchbase-operator    1          1          1               0                21s
 ```
 Note: Above output means your Couchbase operator is deployed and you can go ahead with deploying Couchbase cluster next.
 
@@ -201,24 +202,26 @@ $ kubectl get pods -l app=couchbase-operator --namespace emart
 ```
 
 If the Operator is up and running, the command returns an output where the READY field shows 1/1, such as:
+
 ```
 NAME                                    READY   STATUS   RESTARTS   AGE
-couchbase-operator-8c554cbc7-6vqgf      1/1         Running  0          57s
+couchbase-operator-f6f7b6f75-wdbtd      1/1     Running  0          57s
 ```
+
 You can also check the logs to confirm that the Operator is up and running. Look for the message: CRD initialized, listening for events…​ module=controller.
 
 ```
-$ kubectl logs couchbase-operator-8c554cbc7-6vqgf --namespace emart --tail 20
+$ kubectl logs couchbase-operator-f6f7b6f75-wdbtd --namespace emart --tail 20
 
 output:
 
-time="2019-05-30T23:00:58Z" level=info msg="couchbase-operator v1.2.0 (release)" module=main
-time="2019-05-30T23:00:58Z" level=info msg="Obtaining resource lock" module=main
-time="2019-05-30T23:00:58Z" level=info msg="Starting event recorder" module=main
-time="2019-05-30T23:00:58Z" level=info msg="Attempting to be elected the couchbase-operator leader" module=main
-time="2019-05-30T23:00:58Z" level=info msg="I'm the leader, attempt to start the operator" module=main
-time="2019-05-30T23:00:58Z" level=info msg="Creating the couchbase-operator controller" module=main
-time="2019-05-30T23:00:58Z" level=info msg="Event(v1.ObjectReference{Kind:\"Endpoints\", Namespace:\"emart\", Name:\"couchbase-operator\", UID:\"c96ae600-832e-11e9-9cec-0e104d8254ae\", APIVersion:\"v1\", ResourceVersion:\"950158\", FieldPath:\"\"}): type: 'Normal' reason: 'LeaderElection' couchbase-operator-6cbc476d4d-2kps4 became leader" module=event_recorder
+time="2019-08-08T19:18:50Z" level=info msg="couchbase-operator v1.2.0 (release)" module=main
+time="2019-08-08T19:18:50Z" level=info msg="Obtaining resource lock" module=main
+time="2019-08-08T19:18:50Z" level=info msg="Starting event recorder" module=main
+time="2019-08-08T19:18:50Z" level=info msg="Attempting to be elected the couchbase-operator leader" module=main
+time="2019-08-08T19:18:50Z" level=info msg="I'm the leader, attempt to start the operator" module=main
+time="2019-08-08T19:18:50Z" level=info msg="Creating the couchbase-operator controller" module=main
+time="2019-08-08T19:18:50Z" level=info msg="Event(v1.ObjectReference{Kind:\"Endpoints\", Namespace:\"emart\", Name:\"couchbase-operator\", UID:\"5a5fb656-ba11-11e9-98c4-42010a840059\", APIVersion:\"v1\", ResourceVersion:\"20334\", FieldPath:\"\"}): type: 'Normal' reason: 'LeaderElection' couchbase-operator-f6f7b6f75-wdbtd became leader" module=event_recorder
 ```
 
 # Deploy Couchbase cluster using persistent volumes
@@ -255,30 +258,26 @@ Now in order to use PersistentVolume for Couchbase services (data, index, search
 Let’s use kubectl command to find that out:
 ```
 $ kubectl get storageclass
-
-Output:
-
-gp2 (default)   kubernetes.io/aws-ebs   12m
+NAME                 PROVISIONER            AGE
+standard (default)   kubernetes.io/gce-pd   31m
 ```
 
-Above output means we just have default gp2 storage class and we need to create separate storage-classes in all of the AZs where we are planning to deploy our Couchbase cluster.
+Above output means we just have default gce-pd storage class and we need to create separate storage-classes in all of the AZs where we are planning to deploy our Couchbase cluster.
 
-We will run below steps to create three different storage classes of type gp2 to store data, index and Couchbase binaries.
+We will run below steps to create three different storage classes of type gce-pd to store data, index and Couchbase binaries.
 
-1) Create an Google storage class manifest file for your storage class. Below example defines a storage class that uses the Google EBS gp2 volume type. For more information about the options available for AWS storage classes, see [AWS](https://kubernetes.io/docs/concepts/storage/storage-classes/#aws) in the Kubernetes documentation.
+**1) Create an Google storage class manifest file for your storage class.** Below example defines a storage class that uses the Google gce-pd-ssd volume type. For more information about the options available for GKE storage classes, see [GKE](https://kubernetes.io/docs/concepts/storage/storage-classes/#gke) in the Kubernetes documentation.
 
-* Create a storage definition file [sc-gp2.yaml](files/sc-gp2.yaml) that represent storage class of _gp2_ type (aka general purpose SSD drive), which we will later use it in our _VolumeClaimTemplate_.
+* Create a storage definition file [sc-gce-pd-ssd.yaml](files/sc-gce-pd-ssd.yaml) that represent storage class of _pd-ssd_ type (aka general purpose SSD drive), which we will later use it in our _VolumeClaimTemplate_.
 
 ```
 apiVersion: storage.k8s.io/v1
 kind: StorageClass
 metadata:
-  labels:
-    k8s-addon: storage-aws.addons.k8s.io
-  name: gp2-multi-zone
+  name: sc-fast-storage
 parameters:
-  type: gp2
-provisioner: kubernetes.io/aws-ebs
+  type: pd-ssd
+provisioner: kubernetes.io/gce-pd
 reclaimPolicy: Delete
 volumeBindingMode: WaitForFirstConsumer
 ```
@@ -287,24 +286,20 @@ We have used reclaimPolicy to _Delete_ which tells K8 to delete the volumes of d
 2) We will now use kubectl command to physically create three storage classes from the manifest files we defined above.
 
 ```
-$ kubectl create -f sc-gp2.yaml
+$ kubectl create -f sc-gce-pd-ssd.yaml --namespace emart 
 
-Output:
-
-storageclass.storage.k8s.io/gp2-multi-zone created
+storageclass.storage.k8s.io/sc-fast-storage created
 ```
 
-3) Verify New Storage Class
+**3) Verify New Storage Class**
 Once you’ve created all the storage classes, you can verify them through kubectl command:
 
 ```
 $ kubectl get sc  --namespace emart
 
-output:
-
-NAME            PROVISIONER             AGE
-gp2 (default)   kubernetes.io/aws-ebs   16h
-gp2-multi-zone  kubernetes.io/aws-ebs   96s
+NAME                 PROVISIONER            AGE
+sc-fast-storage      kubernetes.io/gce-pd   59s
+standard (default)   kubernetes.io/gce-pd   2d19h
 ```
 
 ### 2) Add Storage Class to Persistent Volume Claim Template:
@@ -320,67 +315,80 @@ Spec:
     - metadata:
         name: pvc-default
       spec:
-        storageClassName: gp2-multi-zone
+        storageClassName: standard
         resources:
           requests:
             storage: 1Gi
     - metadata:
-        name: pvc-data
+        name: pvc-fast-data
       spec:
-        storageClassName: gp2-multi-zone
+        storageClassName: sc-fast-storage
         resources:
           requests:
             storage: 5Gi
     - metadata:
-        name: pvc-index
+        name: pvc-fast-index
       spec:
-        storageClassName: gp2-multi-zone
+        storageClassName: sc-fast-storage
         resources:
           requests:
             storage: 3Gi
 ```
-Now that the templates are added, the final step is to pair the volume claim template with server groups according in each of the zones. For instance, Pods within Server-Group named data-east-1a should use volumeClaimTemplate named _pvc-data_ to store data and _pvc-default_ for Couchbase binaries and log files.
+
+Now that the templates are added, the final step is to pair the volume claim template with server groups according in each of the zones. For instance, Pods within Server-Group named data-east-1a should use volumeClaimTemplate named _pvc-fast-data_ to store data and _pvc-default_ for Couchbase binaries and log files.
 
 For example, the following shows the pairing of a Server Group and its associated VolumeClaimTemplate:
 
 ```
 spec:
   servers:
-    - name: data-east-1a
+    - name: data-europe-west1-b
       size: 1
       services:
         - data
       serverGroups:
-       - us-east-1a
+       - europe-west1-b
       pod:
         volumeMounts:
           default: pvc-default
-          data: pvc-data
-    - name: data-east-1b
+          data: pvc-fast-data
+    - name: data-europe-west1-c
       size: 1
       services:
         - data
       serverGroups:
-       - us-east-1b
+       - europe-west1-c
       pod:
         volumeMounts:
           default: pvc-default
-          data: pvc-data
-    - name: data-east-1c
+          data: pvc-fast-data
+    - name: data-europe-west1-d
       size: 1
       services:
         - data
       serverGroups:
-       - us-east-1c
+       - europe-west1-d
       pod:
         volumeMounts:
           default: pvc-default
-          data: pvc-data
+          data: pvc-fast-data
 ```
 
-Notice that we have created three separate data server groups (data-east-1a/-1b/-1c), each located in its own AZ, using persistent volume claim templates from that AZ. Now using the same concept we will add index, and query services and allocate them in separate server groups so they can scale independently of data nodes.
+Notice that we have created three separate data server groups (data-europe-west1-b/-c/-d), each located in its own AZ, using persistent volume claim templates from that AZ. Now using the same concept we will add index, and query services and allocate them in separate server groups so they can scale independently of data nodes.
 
-### 3) Deploy Couchbase Cluster
+
+### 3) Add TLS Certificate to non-default namespace 'emart'
+
+```
+kubectl create secret generic couchbase-server-tls --from-file chain.pem --from-file pkey.key --namespace emart
+```
+
+```
+kubectl create secret generic couchbase-operator-tls --from-file pki/ca.crt --namespace emart
+```
+
+
+### 4) Deploy Couchbase Cluster
 
 The full spec for deploying Couchbase cluster across 3 different zones using persistent volumes can be seen in the [couchbase-cluster-with-pv-1.2.yaml](files/couchbase-cluster-with-pv-1.2.yaml) file. This file along with other sample yaml files used in this article can be downloaded from this git repo.
 
@@ -435,9 +443,15 @@ $ kubectl port-forward cb-eks-demo-0000 8091:8091 --namespace emart
 
 At this point you can open up a browser and type http://locahost:8091 which will bring Couchbase web-console from where you can monitor server stats, create buckets, run queries all from one single place.
 
+![](assets/step02-gke-couchbase-cluster.png)
+
 ![](https://blog.couchbase.com/wp-content/uploads/2019/04/K8-Cluster--1024x516.png)
 
 Figure 2: Five node Couchbase cluster using persistent volumes.
+
+
+
+
 
 
 # TLS 
@@ -662,3 +676,38 @@ we can see that cluster is automatically rebalanced.
 Couchbase Autonomous Operator makes management and orchestration of Couchbase Cluster seamless on the Kubernetes platform. What makes this operator unique is its ability to easily use storage classes offered by different cloud vendors (AWS, Azure, GCP, RedHat OpenShift, etc) to create persistent volumes, which is then used by the Couchbase database cluster to persistently store the data. In the event of pod or container failure, Kubernetes re-instantiate a new pod/container automatically and simply remounts the persistent volumes back, making the recovery fast. It also helps maintain the SLA of the system during infrastructure failure recovery because only delta recovery is needed as opposed to full-recovery, if persistent volumes are not being used.
 
 We walked through step-by-step on how you will setup persistent volumes on Google Cloud GKS in this article but the same steps would also be applicable if you are using any other open-source Kubernetes environment (AKS, GKE, etc). We hope you will give Couchbase Autonomous Operator a spin and let us know of your experience.
+
+
+
+
+
+--- 
+
+josemolina@EMEA-JoseMolina  ~/couchbase/kubernetes/operator/gke-emart  kubectl create -f couchbase-cluster-with-pv-tls-serverGroups_1.2.yaml --namespace emart
+Error from server: error when creating "couchbase-cluster-with-pv-tls-serverGroups_1.2.yaml": admission webhook "couchbase-operator-admission.default.svc" denied the request: validation failure list:
+spec.servers[0].default should be one of []
+spec.servers[0].data should be one of []
+spec.servers[1].default should be one of []
+spec.servers[1].data should be one of []
+spec.servers[2].default should be one of []
+spec.servers[2].data should be one of []
+spec.servers[3].default should be one of []
+spec.servers[3].index should be one of []
+spec.servers[4].default should be one of []
+spec.servers[4].index should be one of []
+certificate cannot be verified: x509: certificate is valid for cb-gke-emart-tls, not verify.cb-gke-emart-tls.emart.svc
+
+
+
+kubectl create -f couchbase-cluster-with-pv-tls-serverGroups_1.2.yaml --namespace emart
+Error from server: error when creating "couchbase-cluster-with-pv-tls-serverGroups_1.2.yaml": admission webhook "couchbase-operator-admission.default.svc" denied the request: validation failure list:
+spec.servers[0].default should be one of []
+spec.servers[0].data should be one of []
+spec.servers[1].default should be one of []
+spec.servers[1].data should be one of []
+spec.servers[2].default should be one of []
+spec.servers[2].data should be one of []
+spec.servers[3].default should be one of []
+spec.servers[3].index should be one of []
+spec.servers[4].default should be one of []
+spec.servers[4].index should be one of []

@@ -1,6 +1,6 @@
 # Prerequisite Tools
 
-In this section, you will perform the necessary steps to install and configure the prerequisite tools required to interact with kubernetes cluster deployed on AWS. Follow the steps below and reach out for help if you get stuck. You can skip any step if you already have the corresponding tool(s) installed on your computer.
+In this section, you will perform the necessary steps to install and configure the prerequisite tools required to interact with kubernetes cluster deployed on GKE. Follow the steps below and reach out for help if you get stuck. You can skip any step if you already have the corresponding tool(s) installed on your computer.
 
 **Remember**: it is important to have the right minimum versions of the tools. This guide focuses on installing the right versions, so you get the functionality needed to complete all steps successfully.
 
@@ -8,8 +8,6 @@ In this section, you will perform the necessary steps to install and configure t
 For Mac OS, it is recommended you install Homebrew package manager; it will make things much easier.
 
 There are separate sections for Mac and Windows setup steps where needed. If there are no such separate sections, the steps are similar or identical for both operating systems, however terminal commands shown are based on Mac OS and some may need to be modified before being run on Windows, e.g. change / to \\, remove trailing & character to run commands in the background.
-
-This guide does not cover installation steps on Linux due to a variety of popular Linux distributions. Please ask for help if you are using Linux and get stuck.
 
 
 

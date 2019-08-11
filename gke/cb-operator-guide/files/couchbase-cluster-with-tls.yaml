@@ -47,30 +47,18 @@ spec:
         - data
       serverGroups:
        - europe-west1-b
-      pod:
-        volumeMounts:
-          default: pvc-default 	# /opt/couchbase/var/lib/couchbase
-          data: pvc-fast-data	# /mnt/data
     - name: data-europe-west1-c
       size: 1
       services:
         - data
       serverGroups:
        - europe-west-c
-      pod:
-        volumeMounts:
-          default: pvc-default # /opt/couchbase/var/lib/couchbase
-          data: pvc-fast-data
     - name: data-europe-west1-d
       size: 1
       services:
         - data
       serverGroups:
        - europe-west1-d
-      pod:
-        volumeMounts:
-          default: pvc-default   # /opt/couchbase/var/lib/couchbase
-          data: pvc-fast-data
     - name: query-europe-west1-c
       size: 1
       services:
@@ -78,10 +66,6 @@ spec:
         - index
       serverGroups:
        - europe-west1-c
-      pod:
-        volumeMounts:
-          default: pvc-default    # /opt/couchbase/var/lib/couchbase
-          index: pvc-fast-index   # /mnt/data
     - name: query-europe-west1-d
       size: 1
       services:
@@ -89,31 +73,5 @@ spec:
         - query
       serverGroups:
        - europe-west1-d
-      pod:
-        volumeMounts:
-          default: pvc-default  # /opt/couchbase/var/lib/couchbase
-          index: pvc-fast-index  # /mnt/index
   securityContext:
     fsGroup: 1000
-  volumeClaimTemplates:
-    - metadata:
-        name: pvc-default
-      spec:
-        storageClassName: standard
-        resources:
-          requests:
-            storage: 1Gi
-    - metadata:
-        name: pvc-fast-data
-      spec:
-        storageClassName: sc-fast-storage
-        resources:
-          requests:
-            storage: 5Gi
-    - metadata:
-        name: pvc-fast-index
-      spec:
-        storageClassName: sc-fast-storage
-        resources:
-          requests:
-            storage: 3Gi

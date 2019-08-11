@@ -40,55 +40,49 @@ spec:
       enableFlush: true
       enableIndexReplica: false
       compressionMode: passive
+  serverGroups:
+    - ServerGroup1
+    - ServerGroup2
+    - ServerGroup3
   servers:
-    - name: data-europe-west1-b 
+    - name: data-europe-west3-a 
       size: 1
       services:
         - data
-      serverGroups:
-       - europe-west1-b
       pod:
         volumeMounts:
           default: pvc-default 	# /opt/couchbase/var/lib/couchbase
           data: pvc-fast-data	# /mnt/data
-    - name: data-europe-west1-c
+    - name: data-europe-west3-b
       size: 1
       services:
         - data
-      serverGroups:
-       - europe-west-c
       pod:
         volumeMounts:
           default: pvc-default # /opt/couchbase/var/lib/couchbase
-          data: pvc-fast-data
-    - name: data-europe-west1-d
+          data: pvc-fast-data  # /mnt/data
+    - name: data-europe-west3-c
       size: 1
       services:
         - data
-      serverGroups:
-       - europe-west1-d
       pod:
         volumeMounts:
           default: pvc-default   # /opt/couchbase/var/lib/couchbase
-          data: pvc-fast-data
-    - name: query-europe-west1-c
+          data: pvc-fast-data    # /mnt/data
+    - name: query-europe-west3-b
       size: 1
       services:
         - query
         - index
-      serverGroups:
-       - europe-west1-c
       pod:
         volumeMounts:
           default: pvc-default    # /opt/couchbase/var/lib/couchbase
           index: pvc-fast-index   # /mnt/data
-    - name: query-europe-west1-d
+    - name: query-europe-west3-c
       size: 1
       services:
         - index
         - query
-      serverGroups:
-       - europe-west1-d
       pod:
         volumeMounts:
           default: pvc-default  # /opt/couchbase/var/lib/couchbase

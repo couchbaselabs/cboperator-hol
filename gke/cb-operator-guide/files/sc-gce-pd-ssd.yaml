@@ -1,11 +1,9 @@
 apiVersion: storage.k8s.io/v1
 kind: StorageClass
 metadata:
-  labels:
-    k8s-addon: storage-aws.addons.k8s.io
-  name: gp2-multi-zone
+  name: sc-fast-storage
 parameters:
-  type: gp2
-provisioner: kubernetes.io/aws-ebs
+  type: pd-ssd
+provisioner: kubernetes.io/gce-pd
 reclaimPolicy: Delete
 volumeBindingMode: WaitForFirstConsumer

@@ -6,13 +6,76 @@ The following section will walk through the steps to create the GKS cluster.  Th
 
  In order to automate the setup we have written python based scripts which can be configured to deploy the GKS Cluster under anybody's Google account. Please follow through the steps below:
 
-### Step 1. Clone GKS Creation Scripts repo
+### Step 1. Google SDK Setup & Create your project **_my-couchbase-helm_** 
+```
+$ gcloud init --console-only
+```
 
+### Step 2. **Log in** 
+```
+$ gcloud auth login
+```
 
+### Step 3. **Set default config values**
 
+|config| command |
+| :--- | :--- |
+| Set your default project | ``` $ gcloud config set project my-couchbase-helm ```|
+| Set default region | ```$ gcloud config set compute/region europe-west3```|
+| Set default zone | ```$ gcloud config set compute/zone europe-west3-a```|
 
-### Step 5: Verify number of nodes
+### Step 4. **Setup Network Setup**
+
+*   **4.1. Create Custom Network configuration**
+```  
+$ gcloud compute networks create helm-network --subnet-mode custom
+```
+
+*   **4.2. Create Subnet on region europe-west1**
+```
+$ gcloud compute networks subnets create my-subnet-europe-west1 --network helm-network --region europe-west1 --range 10.0.0.0/12
+```
+*   **4.3. Create Subnet on region europe-west3**
+```
+$ gcloud compute networks subnets create my-subnet-europe-west3 --network helm-network --region europe-west3 --range 10.16.0.0/12
+```
+*   **4.4. Add Firewall rules:**
+```
+$ gcloud compute firewall-rules create my-network-allow-all-private --network helm-network --direction INGRESS --source-ranges 10.0.0.0/8 --allow all
+```
+
+### Step 5. **Provisioning Instances for the Kubernetes-Helm Cluster**
+
+*   **5.1. Create instances for Cluster 1 in europe-west1 zone b**
+```
+$ gcloud container clusters create my-cluster-europe-west1-b --machine-type n1-standard-2 --cluster-version 1.13.6-gke.0 --zone europe-west1-b --network helm-network --subnetwork my-subnet-europe-west1 --num-nodes 3
+```
+
+*   **5.2. Create three instances for cluster 2 in europe-west3 zone a**
+```
+$ gcloud container clusters create my-cluster-europe-west3-a --machine-type n1-standard-2 --cluster-version 1.13.6-gke.0 --zone europe-west3-a --network helm-network --subnetwork my-subnet-europe-west3 --num-nodes 3
+```
+
+*   **5.3. List Clusters**
+```
+$ gcloud container clusters list
+```
+
+### Step 6. **Get Cluster Credentials** and **setup Kubernetes** environment
+
+*   **6.1. Get Cluster Credentials from my-cluster-europe-west1-b**
+```
+$ gcloud container clusters get-credentials my-cluster-europe-west1-b --zone europe-west1-b --project my-couchbase
+```
+
+*   **6.2. Setup your local Kubernetes with the GKE Cluster**
+```
+$ kubectl create clusterrolebinding your-admin-binding --clusterrole cluster-admin --user $(gcloud config get-value account)
+```
+
+### Step 7: Verify number of nodes
 Make sure number of nodes requested in [parameters.py](https://github.com/couchbaselabs/cbsummit-create-eks-cluster/blob/master/parameters.py) is what has been deployed
+
 ```
 $ kubectl get nodes
 
@@ -276,6 +339,7 @@ my-network-allow-all-private  my-network  INGRESS    1000      all          Fals
 ## Troubleshooting
 
 ➜  ~ gcloud container clusters create my-cluster-europe-west1-b --machine-type n1-standard-2 --cluster-version 1.13.6-gke.0 --region europe-west1 --network helm-network --subnetwork my-subnet-europe-west1 --num-nodes 1
+
 WARNING: In June 2019, node auto-upgrade will be enabled by default for newly created clusters and node pools. To disable it, use the `--no-enable-autoupgrade` flag.
 WARNING: Starting in 1.12, new clusters will have basic authentication disabled by default. Basic authentication can be enabled (or disabled) manually using the `--[no-]enable-basic-auth` flag.
 WARNING: Starting in 1.12, new clusters will not have a client certificate issued. You can manually enable (or disable) the issuance of the client certificate using the `--[no-]issue-client-certificate` flag.
