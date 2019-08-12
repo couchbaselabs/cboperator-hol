@@ -67,16 +67,16 @@ validMasterVersions:
 ....
 ```
 
-*   **5.2. Create instances for Cluster 1 in europe-west1 zone b**
+*   **5.2. Create instances for Cluster 1 in europe-west1 region**
 
 ```
-$ gcloud container clusters create my-cluster-europe-west1-b --machine-type n1-standard-2 --cluster-version 1.13.7-gke.8 --zone europe-west1-b --network my-network --subnetwork my-subnet-europe-west1 --num-nodes 3
+$ gcloud container clusters create my-cluster-europe-west1 --machine-type n1-standard-16 --cluster-version 1.13.7-gke.8 --region europe-west1 --network my-network --subnetwork my-subnet-europe-west1 --num-nodes 2
 ```
 
-*   **5.2. Create three instances for cluster 2 in europe-west3 zone a**
+*   **5.3. Create instances for Cluster 2 in europe-west3 region**
 
 ```
-$ gcloud container clusters create my-cluster-europe-west3-a --machine-type n1-standard-2 --cluster-version 1.13.7-gke.8 --zone europe-west3-a --network my-network --subnetwork my-subnet-europe-west3 --num-nodes 3
+$ gcloud container clusters create my-cluster-europe-west3 --machine-type n1-standard-2 --cluster-version 1.13.7-gke.8 --region europe-west3 --network my-network --subnetwork my-subnet-europe-west3 --num-nodes 2
 ```
 
 *   **5.3. List Clusters**
@@ -96,6 +96,7 @@ $ gcloud container clusters get-credentials my-cluster-europe-west1-b --zone eur
 ```
 $ kubectl create clusterrolebinding your-admin-binding --clusterrole cluster-admin --user $(gcloud config get-value account)
 ```
+
 
 ### Step 7: Verify number of nodes
 Make sure number of nodes requested is what has been deployed
