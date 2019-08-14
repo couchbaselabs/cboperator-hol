@@ -35,6 +35,8 @@ Figure 1: Couchbase Autonomous Operator for Kubernetes self-monitors and self-he
 
 ### Google GKE
 
+* [Couchbase Operator guide](gke/cb-operator-guide)
+
 * [Helm deployment](gke/helm-guide)
 
 ### Azure AKS
