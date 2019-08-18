@@ -73,11 +73,6 @@ validMasterVersions:
 $ gcloud container clusters create my-cluster-europe-west1 --machine-type n1-standard-16 --cluster-version 1.13.7-gke.8 --region europe-west1 --network my-network --subnetwork my-subnet-europe-west1 --num-nodes 2
 ```
 
-*   **5.3. Create instances for Cluster 2 in europe-west3 region**
-
-```
-$ gcloud container clusters create my-cluster-europe-west3 --machine-type n1-standard-2 --cluster-version 1.13.7-gke.8 --region europe-west3 --network my-network --subnetwork my-subnet-europe-west3 --num-nodes 2
-```
 
 *   **5.3. List Clusters**
 
@@ -89,7 +84,7 @@ $ gcloud container clusters list
 
 *   **6.1. Get Cluster Credentials from my-cluster-europe-west1-b**
 ```
-$ gcloud container clusters get-credentials my-cluster-europe-west1-b --zone europe-west1-b --project my-couchbase
+$ gcloud container clusters get-credentials my-cluster-europe-west1 --region europe-west1 --project my-couchbase-project
 ```
 
 *   **6.2. Setup your local Kubernetes with the GKE Cluster**

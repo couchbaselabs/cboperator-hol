@@ -133,7 +133,13 @@ The first step in installing the Operator is to install the custom resource defi
 kubectl create -f crd.yaml
 ```
 
-### 2.4. Create a Operator Role
+### 2.4. Install Admission Controller
+
+```
+kubectl create -f admission.yaml 
+```
+
+### 2.5. Create a Operator Role
 
 Next, we will create a [cluster role](https://kubernetes.io/docs/reference/access-authn-authz/rbac/#api-overview) that allows the Operator to access the resources that it needs to run. Since the Operator will manage many different [namespaces](https://kubernetes.io/docs/concepts/overview/working-with-objects/namespaces/), it is best to create a cluster role first because you can assign that role to a [service account](https://kubernetes.io/docs/reference/access-authn-authz/rbac/#service-account-permissions) in any namespace.
 
@@ -426,34 +432,47 @@ $ kubectl get pods --namespace emart -w
 
 output:
 
-NAME                                 READY     STATUS              RESTARTS   AGE
-cb-gke-demo-0000                     1/1       Running             0          2m
-cb-gke-demo-0001                     1/1       Running             0          1m
-cb-gke-demo-0002                     1/1       Running             0          1m
-cb-gke-demo-0003                     1/1       Running             0          37s
-cb-gke-demo-0004                     1/1       ContainerCreating   0          1s
-couchbase-operator-8c554cbc7-n8rhg   1/1       Running             0          19h
+NAME                                 READY   STATUS    RESTARTS   AGE
+cb-gke-emart-tls-0000                1/1     Running   0          8m32s
+cb-gke-emart-tls-0001                1/1     Running   0          6m58s
+cb-gke-emart-tls-0002                1/1     Running   0          5m30s
+cb-gke-emart-tls-0003                1/1     Running   0          4m23s
+cb-gke-emart-tls-0004                1/1     Running   0          3m12s
+couchbase-operator-f6f7b6f75-6xzrc   1/1     Running   0          22m
 ```
 
 If for any reason there is an exception, then you can find the details of exception from the couchbase-operator log file. To display the last 20 lines of the log, copy the name of your operator pod and run below command by replacing the operator name with the name in your environment.
 
 ```
 
-$ kubectl logs couchbase-operator-8c554cbc7-98dkl --namespace emart --tail 20
+$ kubectl logs couchbase-operator-f6f7b6f75-6xzrc --namespace emart --tail 20
 
 output:
 
-time="2019-02-13T18:32:26Z" level=info msg="Cluster does not exist so the operator is attempting to create it" cluster-name=cb-gke-demo module=cluster
-time="2019-02-13T18:32:26Z" level=info msg="Creating headless service for data nodes" cluster-name=cb-gke-demo module=cluster
-time="2019-02-13T18:32:26Z" level=info msg="Creating NodePort UI service (cb-gke-demo-ui) for data nodes" cluster-name=cb-gke-demo module=cluster
-time="2019-02-13T18:32:26Z" level=info msg="Creating a pod (cb-gke-demo-0000) running Couchbase enterprise-5.5.3" cluster-name=cb-gke-demo module=cluster
-time="2019-02-13T18:32:34Z" level=warning msg="node init: failed with error [Post http://cb-gke-demo-0000.cb-gke-demo.emart.svc:8091/node/controller/rename: dial tcp: lookup cb-gke-demo-0000.cb-gke-demo.emart.svc on 10.100.0.10:53: no such host] ...retrying" cluster-name=cb-gke-demo module=cluster
-time="2019-02-13T18:32:39Z" level=info msg="Operator added member (cb-gke-demo-0000) to manage" cluster-name=cb-gke-demo module=cluster
-time="2019-02-13T18:32:39Z" level=info msg="Initializing the first node in the cluster" cluster-name=cb-gke-demo module=cluster
-time="2019-02-13T18:32:39Z" level=info msg="start running..." cluster-name=cb-gke-demo module=cluster
+time="2019-08-18T16:20:18Z" level=info msg="│ cb-gke-emart-tls-0001 │ enterprise-5.5.5 │ data-europe-west1-c  │ managed+active │" cluster-name=cb-gke-emart-tls module=cluster
+time="2019-08-18T16:20:18Z" level=info msg="│ cb-gke-emart-tls-0002 │ enterprise-5.5.5 │ data-europe-west1-d  │ managed+active │" cluster-name=cb-gke-emart-tls module=cluster
+time="2019-08-18T16:20:18Z" level=info msg="│ cb-gke-emart-tls-0003 │ enterprise-5.5.5 │ query-europe-west1-a │ managed+active │" cluster-name=cb-gke-emart-tls module=cluster
+time="2019-08-18T16:20:18Z" level=info msg="│ cb-gke-emart-tls-0004 │ enterprise-5.5.5 │ query-europe-west1-b │ managed+active │" cluster-name=cb-gke-emart-tls module=cluster
+time="2019-08-18T16:20:18Z" level=info msg="└───────────────────────┴──────────────────┴──────────────────────┴────────────────┘" cluster-name=cb-gke-emart-tls module=cluster
+time="2019-08-18T16:20:18Z" level=info cluster-name=cb-gke-emart-tls module=cluster
+time="2019-08-18T16:20:24Z" level=info msg="reconcile finished" cluster-name=cb-gke-emart-tls module=cluster
+time="2019-08-18T16:20:34Z" level=info msg="Cluster status: balanced" cluster-name=cb-gke-emart-tls module=cluster
+time="2019-08-18T16:20:34Z" level=info msg="Node status:" cluster-name=cb-gke-emart-tls module=cluster
+time="2019-08-18T16:20:34Z" level=info msg="┌───────────────────────┬──────────────────┬──────────────────────┬────────────────┐" cluster-name=cb-gke-emart-tls module=cluster
+time="2019-08-18T16:20:34Z" level=info msg="│ Server                │ Version          │ Class                │ Status         │" cluster-name=cb-gke-emart-tls module=cluster
+time="2019-08-18T16:20:34Z" level=info msg="├───────────────────────┼──────────────────┼──────────────────────┼────────────────┤" cluster-name=cb-gke-emart-tls module=cluster
+time="2019-08-18T16:20:34Z" level=info msg="│ cb-gke-emart-tls-0000 │ enterprise-5.5.5 │ data-europe-west1-b  │ managed+active │" cluster-name=cb-gke-emart-tls module=cluster
+time="2019-08-18T16:20:34Z" level=info msg="│ cb-gke-emart-tls-0001 │ enterprise-5.5.5 │ data-europe-west1-c  │ managed+active │" cluster-name=cb-gke-emart-tls module=cluster
+time="2019-08-18T16:20:34Z" level=info msg="│ cb-gke-emart-tls-0002 │ enterprise-5.5.5 │ data-europe-west1-d  │ managed+active │" cluster-name=cb-gke-emart-tls module=cluster
+time="2019-08-18T16:20:34Z" level=info msg="│ cb-gke-emart-tls-0003 │ enterprise-5.5.5 │ query-europe-west1-a │ managed+active │" cluster-name=cb-gke-emart-tls module=cluster
+time="2019-08-18T16:20:34Z" level=info msg="│ cb-gke-emart-tls-0004 │ enterprise-5.5.5 │ query-europe-west1-b │ managed+active │" cluster-name=cb-gke-emart-tls module=cluster
+time="2019-08-18T16:20:34Z" level=info msg="└───────────────────────┴──────────────────┴──────────────────────┴────────────────┘" cluster-name=cb-gke-emart-tls module=cluster
+time="2019-08-18T16:20:34Z" level=info cluster-name=cb-gke-emart-tls module=cluster
+time="2019-08-18T16:20:40Z" level=info msg="reconcile finished" cluster-name=cb-gke-emart-tls module=cluster
 ```
 
 Quick check on persistent volumes claims can be done like below
+
 ```
 $ kubectl get pvc --namespace emart
 ```
@@ -471,7 +490,7 @@ At this point you can open up a browser and type http://locahost:8091 which will
 
 Figure 1: Five node Couchbase cluster using persistent volumes.
 
-![](https://blog.couchbase.com/wp-content/uploads/2019/04/K8-Cluster--1024x516.png)
+![](assets/step02-gke-couchbase-cluster-ui.png)
 
 Figure 2: Couchbase cluster UI with 5 nodes using MDS and server groups.
 
@@ -495,34 +514,7 @@ If you have ever scaled-out or scaled-in a database cluster you would know that 
 
 With Couchbase Autonomous Operator scaling-out or scaling-in is as simple as changing the desired number servers for a specific service in the [couchbase-cluster-with-pv-tls-serverGroups.yaml](./files/couchbase-cluster-with-pv-tls-serverGroups.yaml) file. Let's open this YAML file again and add one server node in us-east-1a server-group running Index and Query service.
 
-Notice we don't have any Index and Query service in the **us-east-1a** serverGroups:
-
-  ```
-  - name: query-west1-c
-    size: 1
-    services:
-      - query
-      - index
-    serverGroups:
-     - europe-west1-c
-    pod:
-      volumeMounts:
-        default: pvc-default
-        index: pvc-fast-index
-  - name: query-west1-d
-    size: 1
-    services:
-      - index
-      - query
-    serverGroups:
-     - europe-west1-d
-    pod:
-      volumeMounts:
-        default: pvc-default
-        index: pvc-fast-index
-  ```  
-  
-So we are going to add one more server in **us-east-1a** server group hosting both index and query service like this:
+Notice we don't have any Index and Query service in the **europe-west1-b** serverGroups:
 
   ```
   - name: query-west1-b
@@ -537,8 +529,35 @@ So we are going to add one more server in **us-east-1a** server group hosting bo
         default: pvc-default
         index: pvc-fast-index
   - name: query-west1-c
-    ....
+    size: 1
+    services:
+      - index
+      - query
+    serverGroups:
+     - europe-west1-c
+    pod:
+      volumeMounts:
+        default: pvc-default
+        index: pvc-fast-index
+  ```  
+  
+So we are going to add one more server in **europe-west1-b** server group hosting both index and query service like this:
+
+  ```
   - name: query-west1-d
+    size: 1
+    services:
+      - query
+      - index
+    serverGroups:
+     - europe-west1-d
+    pod:
+      volumeMounts:
+        default: pvc-default
+        index: pvc-fast-index
+  - name: query-west1-b
+    ....
+  - name: query-west1-c
     ....
   ```
   
@@ -553,12 +572,12 @@ Notice a new pod will be getting ready to be added to the cluster:
 ```
   $ kubectl get pods --namespace emart -w
 NAME                                 READY     STATUS     RESTARTS   AGE
-cb-gke-demo-0000                     1/1       Running    0          44m
-cb-gke-demo-0001                     1/1       Running    0          34m
-cb-gke-demo-0002                     1/1       Running    0          42m
-cb-gke-demo-0003                     1/1       Running    0          41m
-cb-gke-demo-0004                     1/1       Running    0          40m
-cb-gke-demo-0005                     0/1       Init:0/1   0          11s
+cb-gke-emart-tls-0000                     1/1       Running    0          44m
+cb-gke-emart-tls-0001                     1/1       Running    0          34m
+cb-gke-emart-tls-0002                     1/1       Running    0          42m
+cb-gke-emart-tls-0003                     1/1       Running    0          41m
+cb-gke-emart-tls-0004                     1/1       Running    0          40m
+cb-gke-emart-tls-0005                     0/1       Init:0/1   0          11s
   ```
 
   After pod is ready you can view it from the Web Console as well.
@@ -582,11 +601,11 @@ Let's induce the fault now using kubectl delete command:
 ```
 $ kubectl get pod --namespace emart
 NAME                                 READY     STATUS    RESTARTS   AGE
-cb-gke-demo-0000                     1/1       Running   0          8m17s
-cb-gke-demo-0001                     1/1       Running   0          7m23s
-cb-gke-demo-0002                     1/1       Running   0          6m32s
-cb-gke-demo-0003                     1/1       Running   0          5m42s
-cb-gke-demo-0004                     1/1       Running   0          4m52s
+cb-gke-emart-tls-0000                     1/1       Running   0          8m17s
+cb-gke-emart-tls-0001                     1/1       Running   0          7m23s
+cb-gke-emart-tls-0002                     1/1       Running   0          6m32s
+cb-gke-emart-tls-0003                     1/1       Running   0          5m42s
+cb-gke-emart-tls-0004                     1/1       Running   0          4m52s
 couchbase-operator-f6f7b6f75-tbxdj   1/1       Running   0          45m
 
 $ kubectl delete pod cb-gke-demo-0001 --namespace emart
