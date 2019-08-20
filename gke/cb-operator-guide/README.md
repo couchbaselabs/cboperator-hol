@@ -9,11 +9,13 @@
 	
 	2.3. **Install CRD**
 	
-	2.4. **Create a Operator Role**
+	2.4. **Install Admission Controller**
 	
-	2.5. **Create a Service Account**
+	2.5. **Create a Operator Role**
 	
-	2.6. **Deploy Couchbase Operator**
+	2.6. **Create a Service Account**
+	
+	2.7. **Deploy Couchbase Operator**
 
 3. **Deploy Couchbase cluster using persistent volumes, server groups and TLS**
 
@@ -151,7 +153,7 @@ $ kubectl create -f operator-role.yaml --namespace emart
 
 This cluster role only needs to be created once.
 
-### 2.5. Create a Service Account
+### 2.6. Create a Service Account
 
 After the cluster role is created, you need to create a service account in the namespace where you are installing the Operator. To create the service account:
 
@@ -178,7 +180,7 @@ Kubectl get rolebindings -n emart
 Kubectl get sa -n emart
 ```
 
-### 2.6. Deploy Couchbase Operator
+### 2.7. Deploy Couchbase Operator
 
 We now have all the roles and privileges for our operator to be deployed. Deploying the operator is as simple as running the operator.yaml file from the Couchbase Autonomous Operator directory.
 
@@ -298,6 +300,21 @@ provisioner: kubernetes.io/gce-pd
 reclaimPolicy: Delete
 volumeBindingMode: WaitForFirstConsumer
 ```
+
+[sc-gce-pd-slow.yaml](files/sc-gce-pd-slow.yaml)
+
+```
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: slow
+parameters:
+  type: pd-ssd
+provisioner: kubernetes.io/gce-pd
+reclaimPolicy: Delete
+volumeBindingMode: WaitForFirstConsumer
+```
+
 We have used reclaimPolicy to _Delete_ which tells K8 to delete the volumes of deleted Pods but you can change it to _Retain_ depending on your needs or if for troubleshooting purpose you would like to keep the volumes of deleted pods.
 
 2) We will now use kubectl command to physically create three storage classes from the manifest files we defined above.
@@ -308,6 +325,13 @@ $ kubectl create -f sc-gce-pd-ssd.yaml --namespace emart
 storageclass.storage.k8s.io/sc-fast-storage created
 ```
 
+
+```
+$ kubectl create -f sc-gce-pd-slow.yaml --namespace emart 
+
+storageclass.storage.k8s.io/slow created
+```
+
 **3) Verify New Storage Class**
 Once you’ve created all the storage classes, you can verify them through kubectl command:
 
@@ -316,6 +340,7 @@ $ kubectl get sc  --namespace emart
 
 NAME                 PROVISIONER            AGE
 sc-fast-storage      kubernetes.io/gce-pd   59s
+slow                 kubernetes.io/gce-pd   59s
 standard (default)   kubernetes.io/gce-pd   2d19h
 ```
 
@@ -332,7 +357,7 @@ Spec:
     - metadata:
         name: pvc-default
       spec:
-        storageClassName: standard
+        storageClassName: slow
         resources:
           requests:
             storage: 1Gi
@@ -481,7 +506,7 @@ When all the pods are ready then you can port forward one of Couchbase cluster p
 
 
 ```
-$ kubectl port-forward cb-gke-demo-0002 8091:8091 --namespace emart
+$ kubectl port-forward cb-gke-emart-tls-0002 8091:8091 --namespace emart
 ```
 
 At this point you can open up a browser and type http://locahost:8091 which will bring Couchbase web-console from where you can monitor server stats, create buckets, run queries all from one single place.
