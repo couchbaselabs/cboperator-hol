@@ -301,7 +301,8 @@ reclaimPolicy: Delete
 volumeBindingMode: WaitForFirstConsumer
 ```
 
-[sc-gce-pd-slow.yaml](files/sc-gce-pd-slow.yaml)
+* Create a storage definition file [sc-gce-pd-slow.yaml](files/sc-gce-pd-slow.yaml) that represent storage class of pd-standard type (aka general purpose HHD drive), which we will later use it in our VolumeClaimTemplate.
+
 
 ```
 apiVersion: storage.k8s.io/v1
