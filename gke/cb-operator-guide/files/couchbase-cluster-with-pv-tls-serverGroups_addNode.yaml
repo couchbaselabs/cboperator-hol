@@ -71,6 +71,17 @@ spec:
         volumeMounts:
           default: pvc-default   # /opt/couchbase/var/lib/couchbase
           data: pvc-fast-data
+    - name: query-europe-west1-b
+      size: 1
+      services:
+        - index
+        - query
+      serverGroups:
+       - europe-west1-b
+      pod:
+        volumeMounts:
+          default: pvc-default  # /opt/couchbase/var/lib/couchbase
+          index: pvc-fast-index  # /mnt/index
     - name: query-europe-west1-c
       size: 1
       services:

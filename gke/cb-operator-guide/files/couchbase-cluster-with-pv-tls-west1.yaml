@@ -45,8 +45,6 @@ spec:
       size: 1
       services:
         - data
-      serverGroups:
-       - europe-west1-b
       pod:
         volumeMounts:
           default: pvc-default 	# /opt/couchbase/var/lib/couchbase
@@ -55,40 +53,32 @@ spec:
       size: 1
       services:
         - data
-      serverGroups:
-       - europe-west1-c
       pod:
         volumeMounts:
           default: pvc-default # /opt/couchbase/var/lib/couchbase
-          data: pvc-fast-data
+          data: pvc-fast-data  # /mnt/data
     - name: data-europe-west1-d
       size: 1
       services:
         - data
-      serverGroups:
-       - europe-west1-d
       pod:
         volumeMounts:
           default: pvc-default   # /opt/couchbase/var/lib/couchbase
-          data: pvc-fast-data
-    - name: query-europe-west1-c
+          data: pvc-fast-data    # /mnt/data
+    - name: query-europe-west1-a
       size: 1
       services:
         - query
         - index
-      serverGroups:
-       - europe-west1-c
       pod:
         volumeMounts:
           default: pvc-default    # /opt/couchbase/var/lib/couchbase
           index: pvc-fast-index   # /mnt/data
-    - name: query-europe-west1-d
+    - name: query-europe-west1-b
       size: 1
       services:
         - index
         - query
-      serverGroups:
-       - europe-west1-d
       pod:
         volumeMounts:
           default: pvc-default  # /opt/couchbase/var/lib/couchbase
@@ -99,7 +89,7 @@ spec:
     - metadata:
         name: pvc-default
       spec:
-        storageClassName: slow
+        storageClassName: standard
         resources:
           requests:
             storage: 1Gi
