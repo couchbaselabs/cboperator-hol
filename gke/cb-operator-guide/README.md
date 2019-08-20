@@ -588,12 +588,14 @@ So we are going to add one more server in **europe-west1-b** server group hostin
   
 A separate [couchbase-cluster-with-pv-tls-serverGroups_addNode.yaml](./files/couchbase-cluster-with-pv-tls-serverGroups_addNode.yaml) file is provided just for convenience but if you want you can also make changes yourself in the [couchbase-cluster-with-pv-tls-serverGroups.yaml](./files/couchbase-cluster-with-pv-tls-serverGroups.yaml)
 
-  ```
+```
   $ kubectl apply -f couchbase-cluster-with-pv-tls-serverGroups_addNode.yaml  --namespace emart
 
   couchbasecluster.couchbase.com/cb-gke-demo configured
 ```
+
 Notice a new pod will be getting ready to be added to the cluster:
+
 ```
   $ kubectl get pods --namespace emart -w
 NAME                                 READY     STATUS     RESTARTS   AGE
@@ -603,7 +605,7 @@ cb-gke-emart-tls-0002                     1/1       Running    0          42m
 cb-gke-emart-tls-0003                     1/1       Running    0          41m
 cb-gke-emart-tls-0004                     1/1       Running    0          40m
 cb-gke-emart-tls-0005                     0/1       Init:0/1   0          11s
-  ```
+```
 
   After pod is ready you can view it from the Web Console as well.
 
@@ -632,9 +634,10 @@ cb-gke-emart-tls-0002                     1/1       Running   0          6m32s
 cb-gke-emart-tls-0003                     1/1       Running   0          5m42s
 cb-gke-emart-tls-0004                     1/1       Running   0          4m52s
 couchbase-operator-f6f7b6f75-tbxdj   1/1       Running   0          45m
-
-$ kubectl delete pod cb-gke-demo-0001 --namespace emart
-pod "cb-gke-demo-0001" deleted
+```
+```
+$ kubectl delete pod cb-gke-emart-tls-0001 --namespace emart
+pod "cb-gke-emart-tls-0001" deleted
 
 ```
 ![](./assets/server-dropped.png)
@@ -697,9 +700,10 @@ Figure 6: Couchbase Cluster getting upgraded one pod at a time in and online fas
 
 **Note:** At some point during upgrade when your cb-gke-demo-0000 pod is upgraded to a newer pod (cb-gke-demo-0005), you might need to reset the forwarding to newly upgraded pod like this:
 
-  ```
-  $ kubectl port-forward cb-gke-demo-0005 8091:8091 --namespace emart
-  ```
+```
+  $ kubectl port-forward cb-gke-emart-tls-0005 8091:8091 --namespace emart 
+```
+
 Just wait for some time and cluster will upgraded one pod at a time in a rolling fashion.
 
 
