@@ -6,42 +6,42 @@
 2. **Deploy Couchbase Autonomous Operator**
 
 	2.1. **Download Operator package**
-	
+
 	2.2. **Install Admission Control**
-	
+
 	2.3. **Create a namespace**
-	
+
 	2.4. **Install CRD**
-	
+
 	2.5. **Create a Operator Role**
-	
+
 	2.6. **Create a Service Account**
-	
+
 	2.7. **Deploy Couchbase Operator**
 
 3. **Deploy Couchbase cluster using persistent volumes**
 
 	3.1. **Create Secret for Couchbase Admin Console**
-	
+
 	3.2. **Create Google storage class for the GKS cluster**
-	
+
 	3.3. **Server Group Awareness**
-	
+
 	3.4. **Add Storage Class to Persistent Volume Claim Template**
-	
+
 	3.5. **Add TLS Certificate**
-	
+
 	3.6. **Deploy Couchbase Cluster**
-	
+
 
 4. **Operations**
 
 	4.1. **Self-Recovery from Failure**
-	
+
 	4.2. **On-Demand Scaling - Up & Down**
-	
+
 	4.3. **Couchbase Automated Upgrade**
-	
+
 
 5. **Conclusion**
 
@@ -493,7 +493,7 @@ When all the pods are ready then you can port forward one of Couchbase cluster p
 $ kubectl port-forward cb-eks-demo-0000 18091:18091 --namespace emart
 ```
 
-At this point you can open up a browser and type https://locahost:18091 which will bring Couchbase web-console from where you can monitor server stats, create buckets, run queries all from one single place.
+At this point you can open up a browser and type https://localhost:18091 which will bring Couchbase web-console from where you can monitor server stats, create buckets, run queries all from one single place.
 
 ![](https://blog.couchbase.com/wp-content/uploads/2019/04/K8-Cluster--1024x516.png)
 
