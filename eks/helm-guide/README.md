@@ -6,9 +6,11 @@ This document is a walk-through of how to deploy the Couchbase Autonomous Operat
 
 ### Terms
 
-k8s: A short hand version of Kubernetes.
-Amazon EKS/EKS: Amazon Elastic Kubernetes Service.
-RBAC: Role-based acces control.
+*k8s*: A short hand version of Kubernetes.
+
+*Amazon EKS/EKS*: Amazon Elastic Kubernetes Service.
+
+*RBAC*: Role-based acces control.
 
 ### Key Concepts
 
