@@ -2,7 +2,7 @@
 
 ## Create app pod and prep it
 
-App pod yaml !file[https://raw.githubusercontent.com/ramdhakne/blogs/master/external-connectivity/assets/app_pod.yaml] is here
+App pod yaml file is !here[https://raw.githubusercontent.com/ramdhakne/blogs/master/external-connectivity/assets/app_pod.yaml]
 
 Create app pod 
 
