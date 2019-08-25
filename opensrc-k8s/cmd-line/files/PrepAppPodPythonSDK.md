@@ -2,7 +2,7 @@
 
 ## Create app pod and prep it
 
-App pod yaml file is !here[https://raw.githubusercontent.com/ramdhakne/blogs/master/external-connectivity/assets/app_pod.yaml]
+App pod yaml file is ![here](https://raw.githubusercontent.com/ramdhakne/blogs/master/external-connectivity/assets/app_pod.yaml)
 
 Create app pod 
 
@@ -52,7 +52,7 @@ Address: 10.52.1.12
 ```
 
 
-Python SDK file is !here[https://raw.githubusercontent.com/ramdhakne/blogs/master/external-connectivity/python/python_sdk_example.py].
+Python SDK file is ![here](https://raw.githubusercontent.com/ramdhakne/blogs/master/external-connectivity/python/python_sdk_example.py).
 
 Edit the connection string in the program above for line #18. Client will bootstrap with the cluster, find the # of nodes in the cluster, fetch the cluster map, open the connection with the bucket, and perform bucket operations 
 
@@ -96,7 +96,7 @@ Name:   cb-gke-demo-0000.cb-gke-demo.default.svc.cluster.local
 Address: 10.52.1.12
 ```
 
-Python SDK file is !here[https://raw.githubusercontent.com/ramdhakne/blogs/master/external-connectivity/python/python_sdk_example.py].
+Python SDK file is ![here](https://raw.githubusercontent.com/ramdhakne/blogs/master/external-connectivity/python/python_sdk_example.py).
 
 Edit the connection string in the program above for line #18. Client will bootstrap with the cluster, find the # of nodes in the cluster, fetch the cluster map, open the connection with the bucket, and perform bucket operations 
 
