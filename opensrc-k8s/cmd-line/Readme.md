@@ -7,14 +7,16 @@
 ## Overview of the hand on labs
 	Pre-requisities
 	Env details
-	Deploy adminission controller
+	Deploy admission controller
 	Deploy Couchbase Autonomous Operator
-	Deploymnent Couchbase Cluster with following details
+	Deploying Couchbase Cluster with following details
 		* PV
 		* TLS certificates
 	Delete a pod
 	Check that cluster self-heals
 	Cluster is healthy
+	Scaling up and down
+	Run sample Python application using CB Python SDK
 
 
 ## Pre-requisites
@@ -67,7 +69,7 @@ sudo minikube config set cpus 4
 	minikube   Ready    master   3d11h   v1.15.0
 
 
-### Deploy adminission controller
+### Deploy admission controller
 *	cd into the files dir to access the required yaml files
 First we will create a namespace to localize our deployment
 
@@ -114,7 +116,7 @@ First we will create a namespace to localize our deployment
 
 	```
 
-## Deploymnent Couchbase Cluster
+## Deploying Couchbase Cluster
 
 ### Deploy TLS certs in namespace cbdb
 Using help file below, make sure use appropriate namespace, here I have used 'cbdb'
