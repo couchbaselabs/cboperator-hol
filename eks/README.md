@@ -7,17 +7,19 @@
 
 	2.1. **Download Operator package**
 
-	2.2. **Install Admission Control**
+	2.2. **Create a namespace**
 
-	2.3. **Create a namespace**
+	2.3. **Add TLS Certificate**
 
-	2.4. **Install CRD**
+	2.4. **Install Admission Control**
 
-	2.5. **Create a Operator Role**
+	2.5. **Install CRD**
 
-	2.6. **Create a Service Account**
+	2.6. **Create a Operator Role**
 
-	2.7. **Deploy Couchbase Operator**
+	2.7. **Create a Service Account**
+
+	2.8. **Deploy Couchbase Operator**
 
 3. **Deploy Couchbase cluster using persistent volumes**
 
@@ -29,10 +31,7 @@
 
 	3.4. **Add Storage Class to Persistent Volume Claim Template**
 
-	3.5. **Add TLS Certificate**
-
-	3.6. **Deploy Couchbase Cluster**
-
+	3.5. **Deploy Couchbase Cluster**
 
 4. **Operations**
 
@@ -41,7 +40,6 @@
 	4.2. **On-Demand Scaling - Up & Down**
 
 	4.3. **Couchbase Automated Upgrade**
-
 
 5. **Conclusion**
 
@@ -88,28 +86,9 @@ README.txt			couchbase-cluster.yaml		operator-role.yaml
 admission.yaml			crd.yaml			operator-service-account.yaml
 bin				operator-deployment.yaml	pillowfight-data-loader.yaml
 ```
+Note: This workshop is tested with Couchbase Autonomous Operator 1.2.
 
-### 2.2. Install Admission Controller
-
-The admission controller is a required component of the Couchbase Autonomous Operator and needs to be installed separately. The primary purpose of the admission controller is to validate Couchbase cluster configuration changes before the Operator acts on them, thus protecting your Couchbase deployment (and the Operator) from any accidental damage that might arise from an invalid configuration. For architecture details please visit documentation page on the [Admission Controller](https://docs.couchbase.com/operator/current/install-admission-controller.html#architecture)
-
-Use the following steps to deploy the the admission controller:
-
-- From Couchbase operator directory run the following command to create the admission controller:
-
-```
-$ kubectl create -f admission.yaml
-```
-- Confirm the admission controller has deployed successfully:
-
-```
-$ kubectl get deployments
-
-NAME                           DESIRED   CURRENT   UP-TO-DATE   AVAILABLE   AGE
-couchbase-operator-admission   1         1         1            1           1m
-```
-
-### 2.3. Create a namespace
+### 2.2. Create a namespace
 
 Create a namespace that will allow cluster resources to be nicely separated between multiple users. To do that we will use a unique namespace called emart for our deployment and later will use this namespace to deploy Couchbase Cluster.
 
@@ -140,15 +119,116 @@ emart         Active    12s
 
 From now onwards we will use emart as the namespace for all resource provisioning.
 
-### 2.4. Install CRD
+### 2.3. Create TLS Certificate
+
+We need to generate self-signed certificated which we will use later on to deploy:
+- Admission Control
+- Couchbase Autonomous Operator
+- Couchbase Cluster
+
+Follow steps as described in the guide to [generate self-signed certificate](../guides/configure-tls.md). After you are done generating the certs then proceed further.
+
+```
+$ cd easy-rsa/easyrsa3
+```
+Create these two TLS secrets to be used later on in the [couchbase-cluster.yaml](./cb-operator-guide/files/couchbase-cluster-with-pv-1.2.yaml) file during Couchbase Cluster Deployment section.
+```
+
+$ kubectl create secret generic couchbase-server-tls --from-file chain.pem \
+--from-file pkey.key --namespace emart
+
+secret/couchbase-server-tls created
+```
+
+```
+$ kubectl create secret generic couchbase-operator-tls --from-file pki/ca.crt \
+--namespace emart
+
+secret/couchbase-operator-tls created
+```
+One more TLS secret to create which will be used during Admission-Control deployment.
+```
+
+$ kubectl create secret generic couchbase-operator-admission --from-file tls-cert-file \
+--from-file tls-private-key-file --namespace emart
+
+secret/couchbase-operator-admission created
+```
+Make sure all the secrets exist under the namespace.
+```
+$ kubectl get secret --namespace emart
+
+NAME                           TYPE                                  DATA      AGE
+couchbase-operator-admission   Opaque                                2         24s
+couchbase-operator-tls         Opaque                                1         41s
+couchbase-server-tls           Opaque                                2         56s
+default-token-7w7vx            kubernetes.io/service-account-token   3         94s
+
+```
+### 2.4. Install Admission Controller
+
+The admission controller is a required component of the Couchbase Autonomous Operator and needs to be installed separately. The primary purpose of the admission controller is to validate Couchbase cluster configuration changes before the Operator acts on them, thus protecting your Couchbase deployment (and the Operator) from any accidental damage that might arise from an invalid configuration. For architecture details please visit documentation page on the [Admission Controller](https://docs.couchbase.com/operator/current/install-admission-controller.html#architecture)
+
+#### Prepare the file
+
+Use the following steps to edit the admission-controller file:
+
+- From Couchbase Operator directory open ```admission.yaml``` file in the editor.
+- Change all occurrences of ```namespace: default``` to ```namespace: emart``` which is the namespace we will be using in our deployment.
+
+![](./cb-operator-guide/assets/admission-1.png)
+
+Note: There will be three occurrences  where the replacement will happen (in v1.2 it is at line 47,132, 157).
+
+- Similarly we will change occurrences of ```default.svc``` to ```emart.svc``` as **emart** is the namespace we will be using not default.
+
+![](./cb-operator-guide/assets/admission-2.png)
+
+Note: There will be two occurrences of replacement (in v1.2 it is at line 134, 159).
+
+- Delete lines 49-58 as we have already created ```couchbase-operator-admission``` secret and don't need to mention ```tls-cert-file``` and ```tls-priavate-key-file```.
+
+![](./cb-operator-guide/assets/admission-3.png)
+
+- Next we will convert the cert file we generated in the TLS section, into base64 encoded file format so we can copy/paste into the YAML file.
+
+
+```
+$ cd easy-rsa/easyrsa3
+
+$ base64 -i tls-cert-file -o ./tls-cert-file-base64
+```
+- Replace all instances of ```caBundle``` with the content of ```tls-cert-file-base64```.  There are total of two occurrences in the yaml file.
+
+![](./cb-operator-guide/assets/admission-4.png)
+
+#### Ready to deploy
+
+Deploy the admission controller using the command:
+
+```
+$ kubectl create -f admission.yaml --namespace emart
+```
+- Confirm the admission controller has deployed successfully:
+
+```
+$ kubectl get deployments --namespace emart
+
+NAME                           DESIRED   CURRENT   UP-TO-DATE   AVAILABLE   AGE
+couchbase-operator-admission   1         1         1            1           1m
+```
+
+
+
+### 2.5. Install CRD
 
 The first step in installing the Operator is to install the custom resource definition (CRD) that describes the CouchbaseCluster resource type. This can be achieved with the following command:
 
 ```
-kubectl create -f crd.yaml
+kubectl create -f crd.yaml --namespace emart
 ```
 
-### 2.5. Create a Operator Role
+### 2.6. Create a Operator Role
 
 Next, we will create a [cluster role](https://kubernetes.io/docs/reference/access-authn-authz/rbac/#api-overview) that allows the Operator to access the resources that it needs to run. Since the Operator will manage many different [namespaces](https://kubernetes.io/docs/concepts/overview/working-with-objects/namespaces/), it is best to create a cluster role first because you can assign that role to a [service account](https://kubernetes.io/docs/reference/access-authn-authz/rbac/#service-account-permissions) in any namespace.
 
@@ -160,7 +240,7 @@ $ kubectl create -f operator-role.yaml --namespace emart
 
 This cluster role only needs to be created once.
 
-### 2.6. Create a Service Account
+### 2.7. Create a Service Account
 
 After the cluster role is created, you need to create a service account in the namespace where you are installing the Operator. To create the service account:
 
@@ -187,7 +267,7 @@ Kubectl get rolebindings -n emart
 Kubectl get sa -n emart
 ```
 
-### 2.7. Deploy Couchbase Operator
+### 2.8. Deploy Couchbase Operator
 
 We now have all the roles and privileges for our operator to be deployed. Deploying the operator is as simple as running the operator.yaml file from the Couchbase Autonomous Operator directory.
 
@@ -259,7 +339,7 @@ In a production environment where performance and SLA of the system matters most
 
 * **Cloud Integration**: Kubernetes integrates with native storage provisioners available on major cloud vendors such as AWS and GCE.
 
-In this next section we will see how you can define storage classes in different availability zone and build persistent volume claim template, which will be used in [[couchbase-cluster-with-pv-1.2.yaml](./cb-operator-guide/files/couchbase-cluster-with-pv-1.2.yaml) file.
+In this next section we will see how you can define storage classes in different availability zone and build persistent volume claim template, which will be used in [couchbase-cluster-with-pv-1.2.yaml](./cb-operator-guide/files/couchbase-cluster-with-pv-1.2.yaml) file.
 
 ### 3.1. Create Secret for Couchbase Admin Console
 
@@ -421,26 +501,7 @@ spec:
 
 Notice that we have created three separate data server groups (data-east-1a/-1b/-1c), each located in its own AZ, using persistent volume claim templates from that AZ. Now using the same concept we will add index, and query services and allocate them in separate server groups so they can scale independently of data nodes.
 
-
-
-### 3.5. Add TLS Certificate
-
-Create secret for Couchbase Operator and servers with a given certificate. See [how to create a custom certificate](../guides/configure-tls.md) section if you don't have one.
-
-```
-$ kubectl create secret generic couchbase-server-tls --from-file </dir/to>/chain.pem \
---from-file </dir/to>/pkey.key --namespace emart
-
-secret/couchbase-server-tls created
-```
-```
-$ kubectl create secret generic couchbase-operator-tls --from-file </dir/to>pki/ca.crt \
---namespace emart
-
-secret/couchbase-operator-tls created
-```
-
-### 3.6. Deploy Couchbase Cluster
+### 3.5. Deploy Couchbase Cluster
 
 The full spec for deploying Couchbase cluster across 3 different zones using persistent volumes can be seen in the [couchbase-cluster-with-pv-1.2.yaml](./cb-operator-guide/files/couchbase-cluster-with-pv-1.2.yaml) file. This file along with other sample yaml files used in this article can be downloaded from this git repo.
 
@@ -459,45 +520,62 @@ $ kubectl get pods --namespace emart -w
 
 output:
 
-NAME                                 READY     STATUS              RESTARTS   AGE
-cb-eks-demo-0000                     1/1       Running             0          2m
-cb-eks-demo-0001                     1/1       Running             0          1m
-cb-eks-demo-0002                     1/1       Running             0          1m
-cb-eks-demo-0003                     1/1       Running             0          37s
-cb-eks-demo-0004                     1/1       ContainerCreating   0          1s
-couchbase-operator-8c554cbc7-n8rhg   1/1       Running             0          19h
+NAME                                            READY     STATUS    RESTARTS   AGE
+ckdemo-0000                                     1/1       Running   0          6m3s
+ckdemo-0001                                     1/1       Running   0          5m17s
+ckdemo-0002                                     1/1       Running   0          4m7s
+ckdemo-0003                                     1/1       Running   0          2m57s
+ckdemo-0004                                     1/1       Running   0          2m2s
+couchbase-operator-admission-6bf9bf8848-zdc7x   1/1       Running   0          9m1s
+couchbase-operator-f6f7b6f75-pzb9m              1/1       Running   0          8m17s
 ```
 
 If for any reason there is an exception, then you can find the details of exception from the couchbase-operator log file. To display the last 20 lines of the log, copy the name of your operator pod and run below command by replacing the operator name with the name in your environment.
 
 ```
 
-$ kubectl logs couchbase-operator-8c554cbc7-98dkl --namespace emart --tail 20
+$ kubectl logs couchbase-operator-f6f7b6f75-pzb9m --namespace emart --tail 25
 
-output:
-
-time="2019-02-13T18:32:26Z" level=info msg="Cluster does not exist so the operator is attempting to create it" cluster-name=cb-eks-demo module=cluster
-time="2019-02-13T18:32:26Z" level=info msg="Creating headless service for data nodes" cluster-name=cb-eks-demo module=cluster
-time="2019-02-13T18:32:26Z" level=info msg="Creating NodePort UI service (cb-eks-demo-ui) for data nodes" cluster-name=cb-eks-demo module=cluster
-time="2019-02-13T18:32:26Z" level=info msg="Creating a pod (cb-eks-demo-0000) running Couchbase enterprise-5.5.3" cluster-name=cb-eks-demo module=cluster
-time="2019-02-13T18:32:34Z" level=warning msg="node init: failed with error [Post http://cb-eks-demo-0000.cb-eks-demo.emart.svc:8091/node/controller/rename: dial tcp: lookup cb-eks-demo-0000.cb-eks-demo.emart.svc on 10.100.0.10:53: no such host] ...retrying" cluster-name=cb-eks-demo module=cluster
-time="2019-02-13T18:32:39Z" level=info msg="Operator added member (cb-eks-demo-0000) to manage" cluster-name=cb-eks-demo module=cluster
-time="2019-02-13T18:32:39Z" level=info msg="Initializing the first node in the cluster" cluster-name=cb-eks-demo module=cluster
-time="2019-02-13T18:32:39Z" level=info msg="start running..." cluster-name=cb-eks-demo module=cluster
+time="2019-08-27T18:08:22Z" level=info msg="server config query-east-1c: " cluster-name=ckdemo module=cluster
+time="2019-08-27T18:08:22Z" level=info msg="Cluster status: balanced" cluster-name=ckdemo module=cluster
+time="2019-08-27T18:08:22Z" level=info msg="Node status:" cluster-name=ckdemo module=cluster
+time="2019-08-27T18:08:22Z" level=info msg="┌─────────────┬──────────────────┬──────────────┬────────────────┐" cluster-name=ckdemo module=cluster
+time="2019-08-27T18:08:22Z" level=info msg="│ Server      │ Version          │ Class        │ Status         │" cluster-name=ckdemo module=cluster
+time="2019-08-27T18:08:22Z" level=info msg="├─────────────┼──────────────────┼──────────────┼────────────────┤" cluster-name=ckdemo module=cluster
+time="2019-08-27T18:08:22Z" level=info msg="│ ckdemo-0000 │ enterprise-5.5.4 │ data-east-1a │ managed+active │" cluster-name=ckdemo module=cluster
+time="2019-08-27T18:08:22Z" level=info msg="└─────────────┴──────────────────┴──────────────┴────────────────┘" cluster-name=ckdemo module=cluster
+time="2019-08-27T18:08:22Z" level=info msg="Scheduler status:" cluster-name=ckdemo module=cluster
+time="2019-08-27T18:08:22Z" level=info msg="┌──────────────┬────────────┬─────────────┐" cluster-name=ckdemo module=cluster
+time="2019-08-27T18:08:22Z" level=info msg="│ Class        │ Zone       │ Server      │" cluster-name=ckdemo module=cluster
+time="2019-08-27T18:08:22Z" level=info msg="├──────────────┼────────────┼─────────────┤" cluster-name=ckdemo module=cluster
+time="2019-08-27T18:08:22Z" level=info msg="│ data-east-1a │ us-east-1a │ ckdemo-0000 │" cluster-name=ckdemo module=cluster
+time="2019-08-27T18:08:22Z" level=info msg="└──────────────┴────────────┴─────────────┘" cluster-name=ckdemo module=cluster
+time="2019-08-27T18:08:22Z" level=info cluster-name=ckdemo module=cluster
+time="2019-08-27T18:08:27Z" level=info msg="Creating a pod (ckdemo-0001) running Couchbase enterprise-5.5.4" cluster-name=ckdemo module=cluster
+time="2019-08-27T18:09:37Z" level=info msg="added member (ckdemo-0001)" cluster-name=ckdemo module=cluster
+time="2019-08-27T18:09:37Z" level=info msg="Creating a pod (ckdemo-0002) running Couchbase enterprise-5.5.4" cluster-name=ckdemo module=cluster
+time="2019-08-27T18:10:47Z" level=info msg="added member (ckdemo-0002)" cluster-name=ckdemo module=cluster
+time="2019-08-27T18:10:47Z" level=info msg="Creating a pod (ckdemo-0003) running Couchbase enterprise-5.5.4" cluster-name=ckdemo module=cluster
+time="2019-08-27T18:11:42Z" level=info msg="added member (ckdemo-0003)" cluster-name=ckdemo module=cluster
+time="2019-08-27T18:11:42Z" level=info msg="Creating a pod (ckdemo-0004) running Couchbase enterprise-5.5.4" cluster-name=ckdemo module=cluster
+time="2019-08-27T18:12:33Z" level=info msg="added member (ckdemo-0004)" cluster-name=ckdemo module=cluster
+time="2019-08-27T18:12:38Z" level=info msg="Rebalance progress: 0.000000" cluster-name=ckdemo module=cluster
+time="2019-08-27T18:12:42Z" level=info msg="reconcile finished" cluster-name=ckdemo module=cluster
+time="2019-08-27T18:12:52Z" level=info msg="Created bucketName default" cluster-name=ckdemo module=cluster
 ```
 
 When all the pods are ready then you can port forward one of Couchbase cluster pod so that we can view the cluster status from the web-console. Run this command to port forward it.
 
 
 ```
-$ kubectl port-forward cb-eks-demo-0000 18091:18091 --namespace emart
+$ kubectl port-forward ckdemo-0000 18091:18091 --namespace emart
 ```
 
 At this point you can open up a browser and type https://localhost:18091 which will bring Couchbase web-console from where you can monitor server stats, create buckets, run queries all from one single place.
 
-![](https://blog.couchbase.com/wp-content/uploads/2019/04/K8-Cluster--1024x516.png)
+![](./cb-operator-guide/assets/server-view.png)
 
-Figure 2: Five node Couchbase cluster using persistent volumes.
+Figure 1: Five node Couchbase cluster using persistent volumes.
 
 # 4. Operations
 
@@ -513,25 +591,28 @@ Let's induce the fault now using kubectl delete command:
 
 ```
 $ kubectl get pod --namespace emart
-NAME                                 READY     STATUS    RESTARTS   AGE
-cb-eks-demo-0000                     1/1       Running   0          8m17s
-cb-eks-demo-0001                     1/1       Running   0          7m23s
-cb-eks-demo-0002                     1/1       Running   0          6m32s
-cb-eks-demo-0003                     1/1       Running   0          5m42s
-cb-eks-demo-0004                     1/1       Running   0          4m52s
-couchbase-operator-f6f7b6f75-tbxdj   1/1       Running   0          45m
+NAME                                            READY     STATUS    RESTARTS   AGE
+ckdemo-0000                                     1/1       Running   0          15m
+ckdemo-0001                                     1/1       Running   0          15m
+ckdemo-0002                                     1/1       Running   0          13m
+ckdemo-0003                                     1/1       Running   0          12m
+ckdemo-0004                                     1/1       Running   0          11m
+couchbase-operator-admission-6bf9bf8848-zdc7x   1/1       Running   0          18m
+couchbase-operator-f6f7b6f75-pzb9m              1/1       Running   0          18m
+```
+```
 
-$ kubectl delete pod cb-eks-demo-0001 --namespace emart
-pod "cb-eks-demo-0001" deleted
+$ kubectl delete pod ckdemo-0001 --namespace emart
+pod "ckdemo-0001" deleted
 
 ```
 ![](./cb-operator-guide/assets/server-dropped.png)
-Figure 3: One of the Data pod is dropped.
+Figure 2: One of the Data pod is dropped.
 
 After Couchbase Autonomous Operator detects the failure it triggers the healing process.
 
 ![](./cb-operator-guide/assets/server-recovered.png)
-Figure 4: Data node with same name and persistent volume will be restored automatically.
+Figure 3: Data node with same name and persistent volume will be restored automatically.
 
 ### 4.2. On-Demand Scaling - Up & Down
 
@@ -586,27 +667,56 @@ So we are going to add one more server in **us-east-1a** server group hosting bo
   ```
 A separate [couchbase-cluster-sout-with-pv-1.2.yaml](./cb-operator-guide/files/couchbase-cluster-sout-with-pv-1.2.yaml) file is provided just for convenience but if you want you can also make changes yourself in the [couchbase-cluster-with-pv-1.2.yaml](./cb-operator-guide/files/couchbase-cluster-with-pv-1.2.yaml)
 
-  ```
-  $ kubectl apply -f couchbase-cluster-sout-with-pv-1.2.yaml  --namespace emart
-
-  couchbasecluster.couchbase.com/cb-eks-demo configured
 ```
+  $ kubectl apply -f couchbase-cluster-sout-with-pv-1.2.yaml  --namespace emart
+```
+
 Notice a new pod will be getting ready to be added to the cluster:
 ```
-  $ kubectl get pods --namespace emart -w
-NAME                                 READY     STATUS     RESTARTS   AGE
-cb-eks-demo-0000                     1/1       Running    0          44m
-cb-eks-demo-0001                     1/1       Running    0          34m
-cb-eks-demo-0002                     1/1       Running    0          42m
-cb-eks-demo-0003                     1/1       Running    0          41m
-cb-eks-demo-0004                     1/1       Running    0          40m
-cb-eks-demo-0005                     0/1       Init:0/1   0          11s
-  ```
+  $ kubectl get pods --namespace emart
+NAME                                            READY     STATUS     RESTARTS   AGE
+ckdemo-0000                                     1/1       Running    0          27m
+ckdemo-0001                                     1/1       Running    0          10m
+ckdemo-0002                                     1/1       Running    0          25m
+ckdemo-0003                                     1/1       Running    0          24m
+ckdemo-0004                                     1/1       Running    0          23m
+ckdemo-0005                                     0/1       Init:0/1   0          6s
+couchbase-operator-admission-6bf9bf8848-zdc7x   1/1       Running    0          30m
+couchbase-operator-f6f7b6f75-pzb9m              1/1       Running    0          30m
+```
 
   After pod is ready you can view it from the Web Console as well.
 
   ![](./cb-operator-guide/assets/scaled-out.png)
-  Figure 5: Cluster now has three Couchbase server pods hosting Index and Query services spread across three server-groups.
+  Figure 4: Cluster now has three Couchbase server pods hosting Index and Query services spread across three server-groups.
+
+```
+
+$ kubectl logs couchbase-operator-f6f7b6f75-pzb9m --namespace emart --tail 20
+
+time="2019-08-27T18:47:06Z" level=info msg="┌─────────────┬──────────────────┬───────────────┬────────────────┐" cluster-name=ckdemo module=cluster
+time="2019-08-27T18:47:06Z" level=info msg="│ Server      │ Version          │ Class         │ Status         │" cluster-name=ckdemo module=cluster
+time="2019-08-27T18:47:06Z" level=info msg="├─────────────┼──────────────────┼───────────────┼────────────────┤" cluster-name=ckdemo module=cluster
+time="2019-08-27T18:47:06Z" level=info msg="│ ckdemo-0000 │ enterprise-5.5.4 │ data-east-1a  │ managed+active │" cluster-name=ckdemo module=cluster
+time="2019-08-27T18:47:06Z" level=info msg="│ ckdemo-0001 │ enterprise-5.5.4 │ data-east-1b  │ managed+active │" cluster-name=ckdemo module=cluster
+time="2019-08-27T18:47:06Z" level=info msg="│ ckdemo-0002 │ enterprise-5.5.4 │ data-east-1c  │ managed+active │" cluster-name=ckdemo module=cluster
+time="2019-08-27T18:47:06Z" level=info msg="│ ckdemo-0003 │ enterprise-5.5.4 │ query-east-1b │ managed+active │" cluster-name=ckdemo module=cluster
+time="2019-08-27T18:47:06Z" level=info msg="│ ckdemo-0004 │ enterprise-5.5.4 │ query-east-1c │ managed+active │" cluster-name=ckdemo module=cluster
+time="2019-08-27T18:47:06Z" level=info msg="│ ckdemo-0005 │ enterprise-5.5.4 │ query-east-1a │ managed+active │" cluster-name=ckdemo module=cluster
+time="2019-08-27T18:47:06Z" level=info msg="└─────────────┴──────────────────┴───────────────┴────────────────┘" cluster-name=ckdemo module=cluster
+time="2019-08-27T18:47:06Z" level=info msg="Scheduler status:" cluster-name=ckdemo module=cluster
+time="2019-08-27T18:47:06Z" level=info msg="┌───────────────┬────────────┬─────────────┐" cluster-name=ckdemo module=cluster
+time="2019-08-27T18:47:06Z" level=info msg="│ Class         │ Zone       │ Server      │" cluster-name=ckdemo module=cluster
+time="2019-08-27T18:47:06Z" level=info msg="├───────────────┼────────────┼─────────────┤" cluster-name=ckdemo module=cluster
+time="2019-08-27T18:47:06Z" level=info msg="│ data-east-1a  │ us-east-1a │ ckdemo-0000 │" cluster-name=ckdemo module=cluster
+time="2019-08-27T18:47:06Z" level=info msg="│ data-east-1b  │ us-east-1b │ ckdemo-0001 │" cluster-name=ckdemo module=cluster
+time="2019-08-27T18:47:06Z" level=info msg="│ data-east-1c  │ us-east-1c │ ckdemo-0002 │" cluster-name=ckdemo module=cluster
+time="2019-08-27T18:47:06Z" level=info msg="│ query-east-1a │ us-east-1a │ ckdemo-0005 │" cluster-name=ckdemo module=cluster
+time="2019-08-27T18:47:06Z" level=info msg="│ query-east-1b │ us-east-1b │ ckdemo-0003 │" cluster-name=ckdemo module=cluster
+time="2019-08-27T18:47:06Z" level=info msg="│ query-east-1c │ us-east-1c │ ckdemo-0004 │" cluster-name=ckdemo module=cluster
+time="2019-08-27T18:47:06Z" level=info msg="└───────────────┴────────────┴─────────────┘" cluster-name=ckdemo module=cluster
+time="2019-08-27T18:47:06Z" level=info cluster-name=ckdemo module=cluster
+```
 
 
 ### 4.3.  Couchbase Automated Upgrade
@@ -637,30 +747,48 @@ Now let's open [couchbase-cluster-with-pv-1.2.yaml](./cb-operator-guide/files/co
 spec:
   baseImage: couchbase/server
   version: enterprise-5.5.4
-  ```
+```
   to
-  ```
+```
   spec:
     baseImage: couchbase/server
     version: enterprise-6.0.2
-  ```
+```
   Now using kubectl to deploy the cluster.
 
-  ```
+```
   $ kubectl apply -f couchbase-cluster-with-pv-1.2.yaml  --namespace emart
-  ```
+```
 At this point you would notice the pods will be evicted one by one and new pod will be joined to the existing cluster but with an upgraded Couchbase version (6.0.2).
 
 ![](./cb-operator-guide/assets/upgrade.png)
 Figure 6: Couchbase Cluster getting upgraded one pod at a time in and online fashion.
 
-Note: At some point during upgrade when your cb-eks-demo-0000 pod is upgraded to a newer pod (cb-eks-demo-0005), you might need to reset the forwarding to newly upgraded pod like this:
+**Note**: At some point during upgrade when your ckdemo-0000 pod is upgraded to a newer pod (ckdemo-0006), you might need to reset the forwarding to newly upgraded pod like this:
 
-  ```
-  $ kubectl port-forward cb-eks-demo-0005 18091:18091 --namespace emart
-  ```
+```
+  $ kubectl port-forward ckdemo-0006 18091:18091 --namespace emart
+```
+
 Just wait for some time and cluster will upgraded one pod at a time in a rolling fashion.
 
+```
+$ kubectl logs couchbase-operator-f6f7b6f75-pzb9m --namespacemart --tail 20
+
+time="2019-08-27T18:55:40Z" level=info msg="│ Class         │ Zone       │ Server      │" cluster-name=ckdemo module=cluster
+time="2019-08-27T18:55:40Z" level=info msg="├───────────────┼────────────┼─────────────┤" cluster-name=ckdemo module=cluster
+time="2019-08-27T18:55:40Z" level=info msg="│ data-east-1a  │ us-east-1a │ ckdemo-0006 │" cluster-name=ckdemo module=cluster
+time="2019-08-27T18:55:40Z" level=info msg="│ data-east-1b  │ us-east-1b │ ckdemo-0007 │" cluster-name=ckdemo module=cluster
+time="2019-08-27T18:55:40Z" level=info msg="│ data-east-1c  │ us-east-1c │ ckdemo-0008 │" cluster-name=ckdemo module=cluster
+time="2019-08-27T18:55:40Z" level=info msg="│ query-east-1a │ us-east-1a │ ckdemo-0005 │" cluster-name=ckdemo module=cluster
+time="2019-08-27T18:55:40Z" level=info msg="│ query-east-1b │ us-east-1b │ ckdemo-0009 │" cluster-name=ckdemo module=cluster
+time="2019-08-27T18:55:40Z" level=info msg="│ query-east-1c │ us-east-1c │ ckdemo-0004 │" cluster-name=ckdemo module=cluster
+time="2019-08-27T18:55:40Z" level=info msg="└───────────────┴────────────┴─────────────┘" cluster-name=ckdemo module=cluster
+time="2019-08-27T18:55:40Z" level=info cluster-name=ckdemo module=cluster
+time="2019-08-27T18:55:43Z" level=info msg="Planning upgrade of candidate ckdemo-0004 from enterprise-5.5.4 to enterprise-6.0.2" cluster-name=ckdemo module=cluster
+time="2019-08-27T18:55:44Z" level=info msg="Creating a pod (ckdemo-0010) running Couchbase enterprise-6.0.2" cluster-name=ckdemo module=cluster
+
+```
 
 # Conclusion
 
