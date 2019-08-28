@@ -1,10 +1,28 @@
 # Deploying Couchbase Clusters with the Couchbase Autonomous Operator using Helm
 
+## Table of Contents
+
+- [Deploying Couchbase Clusters with the Couchbase Autonomous Operator using Helm](#deploying-couchbase-clusters-with-the-couchbase-autonomous-operator-using-helm)
+    - [Table of Contents](#table-of-contents)
+    - [Introduction](#introduction)
+    - [Terms](#terms)
+    - [Key Concepts](#key-concepts)
+    - [Prerequisites](#prerequisites)
+    - [Create an Amazon EKS Cluster](#create-an-amazon-eks-cluster)
+    - [Installing and Configuring Helm and Tiller](#installing-and-configuring-helm-and-tiller)
+    - [Deploy the Couchbase Autonomous Operator](#deploy-the-couchbase-autonomous-operator)
+    - [Storage Classes](#storage-classes)
+    - [Deploy the Couchbase Cluster](#deploy-the-couchbase-cluster)
+        - [Using TLS](#using-tls)
+        - [View the Couchbase Web Console](#view-the-couchbase-web-console)
+        - [Upgrade Couchbase Server](#upgrade-couchbase-server)
+        - [Scaling a Cluster](#scaling-a-cluster)
+    - [Conclusion](#conclusion)
 ## Introduction
 
-This document is a walk-through of how to deploy the Couchbase Autonomous Operator to manage Couchbase clusters using helm, on Amazon Elastic Kubernetes Service (EKS).  The document focuses on simplicity and is for demonstration purposes.  This document should not be used for production deployments as-is.  The details on how a user should manage their Kubernetes environment is beyond the scope of this document.
+This document is a walk-through of how to deploy the Couchbase Autonomous Operator to manage Couchbase clusters using helm, on Amazon Elastic Kubernetes Service (Amazon EKS).  The document focuses on simplicity and is for demonstration purposes.  This document should not be used for production deployments as-is.  The details on how a user should manage their Kubernetes environment is beyond the scope of this document.
 
-### Terms
+## Terms
 
 *k8s*: A short hand version of Kubernetes.
 
@@ -12,7 +30,7 @@ This document is a walk-through of how to deploy the Couchbase Autonomous Operat
 
 *RBAC*: Role-based acces control.
 
-### Key Concepts
+## Key Concepts
 
 The Couchbase Autonomous Operator simplifies the management and configuration of [Couchbase](www.couchbase.com) clusters in a Kubernetes (k8s) environment. The Couchbase Autonomous Operator [consists of] the Operator itself and the Admission Controller.
 
@@ -103,14 +121,11 @@ Wait for the operator to become ready by running the command (use Ctrl-c to brea
 ```
 kubectl get deployments -w
 ```
+## Storage Classes
 
-## Deploy the Couchbase Cluster
+A storage class is the key to dynamically provisioning volumes in k8s.  AWS provides a default storage class of type gp2, however the recommended storage type for Couchbase workloads is [io1](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/EBSVolumeTypes.html).  In order to use the desired storage type, of io1, for the Couchbase cluster, a new Storage Class must be created.
 
-### Storage Classes
-
-A Storage Class is the key to dynamically provisioning volumes in k8s.  AWS provides a default storage class of type gp2, however the recommended storage type for Couchbase workloads is [io2](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/EBSVolumeTypes.html). 
-
-Create a new storage class named io2 (of type io2) with the provided file [createEKSSC.yaml](createEKSSC.yaml)
+Create a new storage class named io2 (of type io2) with the provided file [createEKSSC.yaml](createEKSSC.yaml) by running the command:
 
 ```
 kubectl create -f createEKSSC.yaml
@@ -118,22 +133,34 @@ kubectl create -f createEKSSC.yaml
 
 ![create SC](images/createStorageClass.gif)
 
-### Configure the cluster
+## Deploy the Couchbase Cluster
 
 The **Couchbase/Couchbase-cluster** chart defines a simple cluster configuration.  This guide uses a more complete configuration that:
 
+* Uses automatically generated TLS certificates
 * Distributes nodes across 3 [availability zones](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Concepts.RegionsAndAvailabilityZones.html)
 * Uses Persistent Volumes of 5GB
 * Uses the storage class of type io1 (created earlier)
 * Has 5 nodes (three data across 2 AZs, 1 query and index, 1 search and analytics):
 
- Override the chart cluster settings and deploy the cluster, using the --values switch with the provided [cb-cluster-eks-values.yaml](cb-cluster-eks-values.yaml) by running:
+### Using TLS
+
+The default behavior of Couchbase Clusters and the Couchbase Autonomous Operator do not use TLS. TLS is supported using one of the following methods: 
+
+1. With automatically generated certificates
+2. With user provided certificates
+
+> Note: Couchbase certificates are represented as plain Kubernetes secrets, so the secret itself can be overridden if desired.
+
+This guide will use automatically generated TLS certificates for simplicity.  See the documentation to [use custom certificates](http://labs.couchbase.com/docs-preview/operator/1.2/helm-cluster-config.html#custom-tls).
+
+Override the chart cluster settings and deploy the cluster, by using the --set switch for the single TLS flag, and using the --values switch with the provided [cb-cluster-eks-values.yaml](cb-cluster-eks-values.yaml) by running:
 
 ```
-helm install Couchbase/Couchbase-cluster --values cb-cluster-eks-values.yaml
+helm install Couchbase/Couchbase-cluster --set couchbaseTLS.create=true --values cb-cluster-eks-values.yaml
 ```
 
-Record the information **NOTES:** section that is displayed at the end of the installation, then wait for all the nodes to deploy by running the command (Ctrl-c to resume):
+Record the information from the **NOTES:** section that is displayed at the end of the installation, then wait for all the nodes to deploy by running the command (Ctrl-c to resume):
 
 ![deploy pods](images/deployPods.png)
 
@@ -189,7 +216,7 @@ kubectl logs deployment/<YOUR DEPLOYMENT> -f
 
 The scaling process is similar to the upgrade process (as values of the release are being edited).  Previously a values file was used, however since only one value is being changed, using --set is appropriate.
 
->Note this is an example of a scale out, however a scale in can be performed by decreasing the value as opposed to increasing the value is being demonstrated.
+>Note: this is an example of a scale out, however a scale in can be performed by decreasing the value as opposed to increasing the value is being demonstrated.
 
 Using the release name from the previous section run:
 
@@ -215,9 +242,7 @@ Navigate to [localhost:8091](http://localhost:8091), and login. Observe a new se
 
 ## Conclusion
 
-The Couchbase Autonomous Operator makes management and orchestration of Couchbase Cluster seamless on the Kubernetes platform. What makes this operator unique is its ability to easily use storage classes offered by different cloud vendors (AWS, Azure, GCP, RedHat OpenShift, etc) to create persistent volumes, which is then used by the Couchbase database cluster to persistently store the data. In the event of pod or container failure, Kubernetes re-instantiate a new pod/container automatically and simply remounts the persistent volumes back, making the recovery fast. It also helps maintain the SLA of the system during infrastructure failure recovery because only delta recovery is needed as opposed to full-recovery, if persistent volumes are not being used.
-
-We walked through step-by-step on how you will setup persistent volumes on Amazon EKS in this article but the same steps would also be applicable if you are using any other open-source Kubernetes environment (AKS, GKE, etc). We hope you will give Couchbase Autonomous Operator a spin and let us know of your experience.
+In summary, the most important point is the Couchbase Autonomous Operator simplifies Couchbase deployments, while being nonintrusive.  However, with the help of Helm managing Couchbase versioning, clusters, applications and releases is quick and easy.  Changes are often completed with basic configuration and distilled into command line one-liners.   Another great feature is the flexibility when choosing your tools, as Helm can be used with kubectl, or kubectl can be used alone, at any time without any change to an k8s environment.  In all cases the Couchbase Autonomous Operator is a stellar tool for managing Couchbase clusters in a k8s environment.
 
 fin
 
