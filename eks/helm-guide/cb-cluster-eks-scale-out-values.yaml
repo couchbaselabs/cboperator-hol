@@ -1,0 +1,6 @@
+couchbaseCluster:
+  servers:
+    data_services_1:
+      size: 2
+
+            

@@ -1,0 +1,90 @@
+couchbaseCluster:
+  adminConsoleServices:
+  - data
+  authSecret: cb-example-auth
+  cluster:
+    analyticsServiceMemoryQuota: 1024
+    autoFailoverMaxCount: 1
+    autoFailoverOnDataDiskIssuesTimePeriod: 15
+    autoFailoverServerGroup: false
+    autoFailoverTimeout: 15
+    dataServiceMemoryQuota: 1024
+    indexServiceMemoryQuota: 512
+    searchServiceMemoryQuota: 512
+  disableBucketManagement: true
+  name: cb-helm-example
+  platform: aws
+  securityContext:
+    fsGroup: 1000
+  servers:
+    all_services:
+      pod:
+        labels:
+          couchbase_services: data_2a
+        volumeMount:
+          data: data-claim
+          default: data-claim
+      serverGroups:
+      - us-east-2a
+      services:
+      - data
+      size: 2
+    data_services_2b:
+      pod:
+        labels:
+          couchbase_services: data_2b
+        volumeMount:
+          data: data-claim
+          default: data-claim
+      serverGroups:
+      - us-east-2b
+      services:
+      - data
+      size: 2
+    query_index_service:
+      pod:
+        labels:
+          couchbase_services: query_index_2b
+        volumeMount:
+          default: non-data-claim
+          index: non-data-claim
+      serverGroups:
+      - us-east-2b
+      services:
+      - index
+      - query
+      size: 1
+    search_ana_service:
+      pod:
+        labels:
+          couchbase_services: search_ana_2c
+        volumeMount:
+          analytics: non-data-claim
+          default: non-data-claim
+      serverGroups:
+      - us-east-2c
+      services:
+      - search
+      - analytics
+      size: 1
+  version: enterprise-6.0.2
+  volumeClaimTemplates:
+  - metadata:
+      name: data-claim
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      resources:
+        requests:
+          storage: 5Gi
+      storageClassName: io1
+  - metadata:
+      name: non-data-claim
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      resources:
+        requests:
+          storage: 1Gi
+      storageClassName: io1
+

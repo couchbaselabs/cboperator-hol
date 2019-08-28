@@ -1,0 +1,93 @@
+couchbaseCluster:
+  name: cb-helm-example
+  version: enterprise-6.0.1
+  authSecret: cb-example-auth
+  disableBucketManagement: true
+  platform:
+    aws
+  securityContext:
+    fsGroup: 1000
+  adminConsoleServices:
+    - data
+  cluster:
+    autoFailoverTimeout: 15
+    autoFailoverMaxCount: 1
+    autoFailoverOnDataDiskIssuesTimePeriod: 15
+    autoFailoverServerGroup: false
+    dataServiceMemoryQuota: 1024
+    indexServiceMemoryQuota: 512
+    searchServiceMemoryQuota: 512
+    analyticsServiceMemoryQuota: 1024
+  servers:
+    all_services:
+      size: 2
+      serverGroups:
+      - "us-east-2a"
+      pod:
+        labels:
+          couchbase_services: data_2a
+        volumeMounts:
+          default: data-claim
+          data: data-claim
+      services:
+        - data
+    data_services_2b:
+      size: 1
+      serverGroups:
+      - "us-east-2b"
+      pod:
+        labels:
+          couchbase_services: data_2b
+        volumeMounts:
+          default: data-claim
+          data: data-claim
+      services:
+        - data
+    query_index_service:
+      size: 1
+      serverGroups:
+      - "us-east-2b"
+      pod:
+        labels:
+          couchbase_services: query_index_2b
+        volumeMounts:
+          default: non-data-claim
+          index: non-data-claim
+      services:
+        - index
+        - query
+    search_ana_service:
+      size: 1
+      serverGroups:
+      - "us-east-2c"
+      pod:
+        labels:
+          couchbase_services: search_ana_2c
+        volumeMounts:
+          default: non-data-claim
+          analytics:
+            - non-data-claim
+            - non-data-claim
+      services:
+        - search
+        - analytics
+  volumeClaimTemplates:
+    - metadata:
+        name: data-claim
+      spec:
+        storageClassName: io1
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 5Gi
+    - metadata:
+        name: non-data-claim
+      spec:
+        storageClassName: io1
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 5Gi
+            
