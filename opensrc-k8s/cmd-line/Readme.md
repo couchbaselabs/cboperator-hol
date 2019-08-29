@@ -200,7 +200,7 @@ Server would automatically failover, depending on the autoFailovertimeout
 
 ![3-svr-autofailover](assets/3-svr-autofailover.png)
 
-A lost couchbase is auto-recovered by Couchbase Operator as its contantly watching cluster definition
+A lost couchbase is auto-recovered by Couchbase Operator as its constantly watching cluster definition
 
 ![4-auto-rebalance](assets/4-auto-rebalance.png)
 
