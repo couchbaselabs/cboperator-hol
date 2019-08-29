@@ -16,6 +16,7 @@
 	Check that cluster self-heals
 	Cluster is healthy
 	Scaling up and down
+	Backup and Restore Couchbase server
 	Run sample Python application using CB Python SDK
 
 
@@ -230,6 +231,12 @@ sudo kubectl apply -f couchbase-persistent-cluster-tls-k8s-minikube.yaml --names
 ## Scaling down
 
 Its exact opposite of scaling up, reduce the cluster to any number. But not less than 3. Couchbase MVP is 3 nodes.
+
+## Backup and Restore Couchbase server
+
+Backup and restore the Couchbase server
+
+![here](https://github.com/couchbaselabs/cboperator-hol/blob/master/opensrc-k8s/cmd-line/files/BackupCB.md)
 
 ## Run sample Python application
 
