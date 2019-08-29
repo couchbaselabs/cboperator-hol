@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: my-test-claim
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: io1
+  resources:
+    requests:
+      storage: 5Gi

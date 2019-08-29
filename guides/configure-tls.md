@@ -62,21 +62,32 @@ There are quite a few fields but you can leave some blank
 For some fields there will be a default value,
 If you enter '.', the field will be left blank.
 -----
-Common Name (eg: your user, host, or server name) [Easy-RSA CA]:tls.emart.svc
+Common Name (eg: your user, host, or server name) [Easy-RSA CA]:Couchbase CA
 
 CA creation complete and you may now import and sign cert requests.
 Your new CA certificate file for publishing is at:
 ~/pki/ca.crt
 ```
+Note: Specify a passphrase, for this demo we will use “couchbase”.  It will also prompt you to add a CN for the Certificate Authority,  for this demo we will use “Couchbase CA”.
 
-Create a server wildcard certificate and key to be used on Couchbase Server pods. The Operator/clients will access the pods via Kubernetes services (**cb-eks-demo-0000.tls.emart.svc**, for example) so this needs to be in the SAN list in order for a client to verify the certificate belongs to the host that is being connected to.
+### Generate Wildcart Certificate
+
+Create a server wildcard certificate and key to be used on Couchbase Server pods. The Operator/clients will access the pods via Kubernetes services (for example **\<SERVICE_NAME-0000>.\<CLUTSER_NAME\>.\<NAMESPACE\>.svc**) so this needs to be in the SAN list in order for a client to verify the certificate belongs to the host that is being connected to.
 
 To this end, we add in a **--subject-alt-name**, this can be specified multiple times in case your client uses a different method of addressing. The key/certificate pair can be found in **pki/private/couchbase-server.key** and **pki/issued/couchbase-server.crt** and used as **pkey.pem** and **chain.pem**, respectively, in the **serverSecret**.
 
-You may be asked to enter passphrase that was used to generate the CA
+Run this command by replacing the parameters you chose. In our case we have CLUSTER_NAME=**ckdemo**, NAMESPACE=**emart**, DOMAIN_NAME=sewestus.com:
+
 
 ```
-$ ./easyrsa --subject-alt-name="DNS:*.tls.emart.svc" build-server-full couchbase-server nopass
+Sample command
+$ ./easyrsa --subject-alt-name=”DNS:*.<CLUSTER_NAME>.<NAMESPACE>.svc,DNS:*.<NAMESPACE>.svc,\
+  DNS:*.<CLUSTER_NAME>.<DOMAIN_NAME>” build-server-full couchbase-server nopass
+```
+
+```
+$ ./easyrsa --subject-alt-name="DNS:*.ckdemo.emart.svc,DNS:*.emart.svc,\
+DNS:*.ckdemo.sewestus.com" build-server-full couchbase-server nopass
 
 
 
@@ -92,7 +103,7 @@ Check that the request matches the signature
 Signature ok
 The Subject's Distinguished Name is as follows
 commonName            :ASN.1 12:'couchbase-server'
-Certificate is to be certified until Aug  4 19:18:11 2022 GMT (1080 days)
+Certificate is to be certified until Aug  10 19:18:11 2022 GMT (1080 days)
 
 Write out database with 1 new entries
 Data Base Updated
@@ -107,9 +118,7 @@ Due to an [issue](https://issues.couchbase.com/browse/MB-24404) with Couchbase S
 ```
 $ cp pki/private/couchbase-server.key pkey.key
 ```
-```
-$ cp pki/issued/couchbase-server.crt chain.pem
-```
+
 ```
 $ openssl rsa -in pkey.key -out pkey.key.der -outform DER
 
@@ -119,4 +128,14 @@ writing RSA key
 $ openssl rsa -in pkey.key.der -inform DER -out pkey.key -outform PEM
 
 writing RSA key
+```
+Next copy TLS certificate file to current directory for easy access.
+```
+$ cp pki/issued/couchbase-server.crt chain.pem
+```
+Also make copy of certificate and private key to ```tls-cert-file``` and ```tls-private-key-file``` to be used in creating ```couchbase-operator-admission``` secret in later section:
+
+```
+$ cp chain.pem tls-cert-file
+$ cp pkey.key tls-private-key-file
 ```

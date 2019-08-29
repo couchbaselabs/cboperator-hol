@@ -1,17 +1,24 @@
 apiVersion: couchbase.com/v1
 kind: CouchbaseCluster
 metadata:
-  name: cb-eks-demo
+  name: ckdemo
 spec:
   baseImage: couchbase/server
   version: enterprise-5.5.4
+  tls:
+    static:
+      member:
+        serverSecret: couchbase-server-tls
+      operatorSecret: couchbase-operator-tls
   authSecret: cb-example-auth
   exposeAdminConsole: true
   adminConsoleServices:
     - data
   exposedFeatures:
     - xdcr
-  exposedFeatureServiceType: NodePort
+  exposedFeatureServiceType: LoadBalancer
+  dns:
+    domain: sewestus.com
   cluster:
     dataServiceMemoryQuota: 1024
     indexServiceMemoryQuota: 1024
@@ -36,7 +43,7 @@ spec:
       enableIndexReplica: false
       compressionMode: passive
   servers:
-    - name: data-east-1a 
+    - name: data-east-1a
       size: 1
       services:
         - data
