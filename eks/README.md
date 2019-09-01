@@ -607,9 +607,9 @@ And access web-console by typing https://localhost:18091 on the browser.
 
 After deploying a secured Couchbase Cluster, we would like to perform some load test so that we can confirm that a client application running locally on our laptop can write JSON documents into the Couchbase bucket.
 
-In order to connect to a SSL enabled Couchbase Cluster we need to setup keystore locally on our laptop machine so we can securely persist the certificates we used to setup the cluster in the first place. The steps are simple and covered in [How to setup Keystore](../guides/setting_keystore.md) document.
+To connect to an SSL enabled Couchbase Cluster we need to setup Keystore locally on our laptop machine so we can securely persist the certificates we used to setup the cluster in the first place. The steps are simple and covered in [How to setup Keystore](../guides/setting_keystore.md) document.
 
-One you have setup the keystore then we are going to download a Java jar file from here:
+Once you have setup the Keystore then we are going to download a Java jar file from here:
 
 ```
 $ wget https://raw.githubusercontent.com/sahnianuj/cb-loadgen/master/bin/cbloadgen.jar
@@ -624,7 +624,7 @@ Saving to: ‘cbloadgen.jar’
 cbloadgen.jar     100%[====================================================================>]  14.92M  32.7MB/s    in 0.5s
 
 ```
-Also make sure that you have java installed on your machine before we run the workload test. Please run this command to make sure you have Java 1.8 or higher installed.
+Also, make sure that you have java installed on your machine before we run the workload test. Please run this command to make sure you have Java 1.8 or higher installed.
 
 ```
 $ java -version
@@ -634,7 +634,7 @@ Java(TM) SE Runtime Environment (build 1.8.0_144-b01)
 Java HotSpot(TM) 64-Bit Server VM (build 25.144-b01, mixed mode)
 ```
 
-We are ready to write few thousand documents into our _default_ bucket by using jar file we downloaded before. Here is the command to use:
+We are ready to write a few thousand documents into our _default_ bucket by using the jar file we downloaded before. Here is the command to use:
 
 ```
 $ java -jar cbloadgen.jar -t 10 -d 1000 -h localhost -u Administrator \
@@ -650,7 +650,7 @@ Average Latency: 1.78 ms
 ```
 In order to learn more about the arguments used, please follow the [README](https://github.com/sahnianuj/cb-loadgen) file.
 
-**Note**: There could be significant network latency between your laptop and Amazon EKS cluster so please take performance numbers with a grain of salt.
+**Note**: There could be a significant network latency between your laptop and Amazon EKS cluster so please take performance numbers with a grain of salt.
 
 # 5. Operations
 
