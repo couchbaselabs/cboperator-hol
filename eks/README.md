@@ -33,15 +33,17 @@
 
 	3.5. **Deploy Couchbase Cluster**
 
-4. **Operations**
+4. **Test Client-Application**
 
-	4.1. **Self-Recovery from Failure**
+5. **Operations**
 
-	4.2. **On-Demand Scaling - Up & Down**
+	5.1. **Self-Recovery from Failure**
 
-	4.3. **Couchbase Automated Upgrade**
+	5.2. **On-Demand Scaling - Up & Down**
 
-5. **Conclusion**
+	5.3. **Couchbase Automated Upgrade**
+
+6. **Conclusion**
 
 
 # 1. Prerequisites
@@ -564,24 +566,97 @@ time="2019-08-27T18:12:42Z" level=info msg="reconcile finished" cluster-name=ckd
 time="2019-08-27T18:12:52Z" level=info msg="Created bucketName default" cluster-name=ckdemo module=cluster
 ```
 
-When all the pods are ready then you can port forward one of Couchbase cluster pod so that we can view the cluster status from the web-console. Run this command to port forward it.
+When all the pods are ready you can view what External-IP are assigned to each pod. Please note that in the [couchbase-cluster-with-pv-1.2.yaml](./cb-operator-guide/files/couchbase-cluster-with-pv-1.2.yaml) file, we used ```exposedFeatureServiceType: LoadBalancer``` therefore our pods get assigned with public facing IP.
+
+```
+$  kubectl get svc --namespace emart -w
+
+NAME                           TYPE           CLUSTER-IP       EXTERNAL-IP                                                               PORT(S)                           AGE
+ckdemo-0000-exposed-ports      LoadBalancer   10.100.218.99    <pending>     18091:31325/TCP,11207:31716/TCP   2m
+ckdemo-0001-exposed-ports      LoadBalancer   10.100.67.128    <pending>     18091:31463/TCP,11207:30847/TCP   2m
+ckdemo-0002-exposed-ports      LoadBalancer   10.100.107.146   <pending>     18091:32242/TCP,11207:30585/TCP   2m
+ckdemo-0003-exposed-ports      LoadBalancer   10.100.202.204   <pending>     18091:32766/TCP,18092:32672/TCP   2m
+ckdemo-0004-exposed-ports      LoadBalancer   10.100.162.33    <pending>     18091:30420/TCP,18092:30063/TCP   2m
+ckdemo-srv                     ClusterIP      None             <none>        11210/TCP,11207/TCP               6m
+ckdemo-ui                      NodePort       10.100.111.34    <none>        8091:31106/TCP,18091:30156/TCP    6m
+couchbase-operator-admission   ClusterIP      10.100.70.83     <none>        443/TCP                           23h
+ckdemo-0000-exposed-ports      LoadBalancer   10.100.218.99    a3e1e07e1c9bb11e988541276313ac26-929659888.us-east-1.elb.amazonaws.com    18091:31325/TCP,11207:31716/TCP   5m6s
+ckdemo-0001-exposed-ports      LoadBalancer   10.100.67.128    a3e302ed5c9bb11e988541276313ac26-1624506791.us-east-1.elb.amazonaws.com   18091:31463/TCP,11207:30847/TCP   5m5s
+ckdemo-0002-exposed-ports      LoadBalancer   10.100.107.146   a3e0f0732c9bb11e988541276313ac26-1179001987.us-east-1.elb.amazonaws.com   18091:32242/TCP,11207:30585/TCP   5m6s
+ckdemo-0003-exposed-ports      LoadBalancer   10.100.202.204   a3e14de9cc9bb11e988541276313ac26-1849814018.us-east-1.elb.amazonaws.com   18091:32766/TCP,18092:32672/TCP   5m6s
+ckdemo-0004-exposed-ports      LoadBalancer   10.100.162.33    a3e198391c9bb11e988541276313ac26-11092324.us-east-1.elb.amazonaws.com     18091:30420/TCP,18092:30063/TCP   5m6s
+```
+
+
+At this point you can open up a browser and type https://a3e1e07e1c9bb11e988541276313ac26-929659888.us-east-1.elb.amazonaws.com:18091 (external-ip of ckdemo-0000 pod) which will bring Couchbase web-console from where you can monitor server stats, create buckets, run queries all from one single place.
+
+![](./cb-operator-guide/assets/server-view.png)
+
+Figure 1: Five node Couchbase cluster using persistent volumes.
+
+If for any reason you don't get external-ip assigned to your pods you can always do the port forwarding like this:
 
 
 ```
 $ kubectl port-forward ckdemo-0000 18091:18091 --namespace emart
 ```
 
-At this point you can open up a browser and type https://localhost:18091 which will bring Couchbase web-console from where you can monitor server stats, create buckets, run queries all from one single place.
+And access web-console by typing https://localhost:18091 on the browser.
 
-![](./cb-operator-guide/assets/server-view.png)
+# 4. Test Client-Application
 
-Figure 1: Five node Couchbase cluster using persistent volumes.
+After deploying a secured Couchbase Cluster, we would like to perform some load test so that we can confirm that a client application running locally on our laptop can write JSON documents into the Couchbase bucket.
 
-# 4. Operations
+In order to connect to a SSL enabled Couchbase Cluster we need to setup keystore locally on our laptop machine so we can securely persist the certificates we used to setup the cluster in the first place. The steps are simple and covered in [How to setup Keystore](../guides/setting_keystore.md) document.
+
+One you have setup the keystore then we are going to download a Java jar file from here:
+
+```
+$ wget https://raw.githubusercontent.com/sahnianuj/cb-loadgen/master/bin/cbloadgen.jar
+
+--2019-08-31 21:40:22--  https://raw.githubusercontent.com/sahnianuj/cb-loadgen/master/bin/cbloadgen.jar
+Resolving raw.githubusercontent.com (raw.githubusercontent.com)... 151.101.188.133
+Connecting to raw.githubusercontent.com (raw.githubusercontent.com)|151.101.188.133|:443... connected.
+HTTP request sent, awaiting response... 200 OK
+Length: 15646628 (15M) [application/octet-stream]
+Saving to: ‘cbloadgen.jar’
+
+cbloadgen.jar     100%[====================================================================>]  14.92M  32.7MB/s    in 0.5s
+
+```
+Also make sure that you have java installed on your machine before we run the workload test. Please run this command to make sure you have Java 1.8 or higher installed.
+
+```
+$ java -version
+
+java version "1.8.0_144"
+Java(TM) SE Runtime Environment (build 1.8.0_144-b01)
+Java HotSpot(TM) 64-Bit Server VM (build 25.144-b01, mixed mode)
+```
+
+We are ready to write few thousand documents into our _default_ bucket by using jar file we downloaded before. Here is the command to use:
+
+```
+$ java -jar cbloadgen.jar -t 10 -d 1000 -h localhost -u Administrator \
+-p password -b default -e true -ks ~/.keystore -kp password
+
+Connection created.
+...............
+*****************************************************************
+Time elapsed: 1785 ms
+Average Throughput: 560 ops/sec
+Average Latency: 1.78 ms
+*****************************************************************
+```
+In order to learn more about the arguments used, please follow the [README](https://github.com/sahnianuj/cb-loadgen) file.
+
+**Note**: There could be significant network latency between your laptop and Amazon EKS cluster so please take performance numbers with a grain of salt.
+
+# 5. Operations
 
 In this section we are going to perform some operational tasks like cluster expansion, cluster upgrade and test self-recovery feature of the Couchbase Autonomous operator. Let's start with the last topic first.
 
-### 4.1. Self-Recovery from Failure
+### 5.1. Self-Recovery from Failure
 
 One of the best feature of Kubernetes in general is that it provides Auto-Healing capability to the services that are managed by it. With Couchbase Autonomous Operator we leverage the same Auto-Healing capability of K8 for Couchbase Cluster.
 
@@ -614,7 +689,7 @@ After Couchbase Autonomous Operator detects the failure it triggers the healing 
 ![](./cb-operator-guide/assets/server-recovered.png)
 Figure 3: Data node with same name and persistent volume will be restored automatically.
 
-### 4.2. On-Demand Scaling - Up & Down
+### 5.2. On-Demand Scaling - Up & Down
 
 If you have ever scaled-out or scaled-in a database cluster you would know that it is a non-trivial process as it entails lot of manually triggered steps which are not only time consuming but also error prone.
 
@@ -719,7 +794,7 @@ time="2019-08-27T18:47:06Z" level=info cluster-name=ckdemo module=cluster
 ```
 
 
-### 4.3.  Couchbase Automated Upgrade
+### 5.3.  Couchbase Automated Upgrade
 
 Any software in service goes through continuous improvement and there is definitely going to be the moments when you would like to upgrade Couchbase Autonomous Operator too because of some new feature or the patch which is critical for your business.
 
@@ -727,7 +802,7 @@ Upgrading a distributed cluster like Couchbase requires careful orchestration of
 
 Let's take a look at how you can upgrade the system in an online fashion.
 
-#### 4.3.1. Preparing for Upgrade
+#### 5.3.1. Preparing for Upgrade
 Before beginning an upgrade to your Kubernetes cluster, review the following considerations and prerequisites:
 
 - As an eviction deletes a pod, ensure that the Couchbase cluster is scaled correctly so that it can handle the increased load of having a pod down while a new pod is balanced into the cluster.
@@ -736,7 +811,7 @@ Before beginning an upgrade to your Kubernetes cluster, review the following con
 
 - Ensure that there is capacity in your Kubernetes cluster to handle the scheduling of replacement Couchbase pods. For example, if a Couchbase cluster were running on Kubernetes nodes marked exclusively for use by Couchbase, and anti-affinity were enabled as per the deployment [best practices](https://docs.couchbase.com/operator/current/best-practices.html), the Kubernetes cluster would require at least one other node capable of scheduling and running your Couchbase workload.
 
-#### 4.3.2. Perform Automatic Upgrade
+#### 5.3.2. Perform Automatic Upgrade
 To prevent downtime or a data loss scenario, the Operator provides controls for how automated Kubernetes upgrades proceed.
 
 A PodDisruptionBudget is created for each CouchbaseCluster resource created. The PodDisruptionBudget specifies that at least the cluster size minus one node (N-1) be ready at any time. This constraint allows, at most, one node to be evicted at a time. As a result, it’s recommended that to support an automatic Kubernetes upgrade, the cluster be deployed with anti-affinity enabled to guarantee only a single eviction at a time.
@@ -764,12 +839,6 @@ At this point you would notice the pods will be evicted one by one and new pod w
 ![](./cb-operator-guide/assets/upgrade.png)
 Figure 6: Couchbase Cluster getting upgraded one pod at a time in and online fashion.
 
-**Note**: At some point during upgrade when your ckdemo-0000 pod is upgraded to a newer pod (ckdemo-0006), you might need to reset the forwarding to newly upgraded pod like this:
-
-```
-  $ kubectl port-forward ckdemo-0006 18091:18091 --namespace emart
-```
-
 Just wait for some time and cluster will upgraded one pod at a time in a rolling fashion.
 
 ```
@@ -789,8 +858,24 @@ time="2019-08-27T18:55:43Z" level=info msg="Planning upgrade of candidate ckdemo
 time="2019-08-27T18:55:44Z" level=info msg="Creating a pod (ckdemo-0010) running Couchbase enterprise-6.0.2" cluster-name=ckdemo module=cluster
 
 ```
+**Note**: At some point during upgrade all the pods are going to be  recycled and external-ip addresses are also going to be reset. So you would need to check the services again to find the latest external-ip by running below command so you can reconnect to the web-console:
 
-# Conclusion
+```
+$  kubectl get svc -n emart
+NAME                           TYPE           CLUSTER-IP       EXTERNAL-IP                                                               PORT(S)                           AGE
+
+ckdemo-0005-exposed-ports      LoadBalancer   10.100.184.222   ad15bb757c9cc11e988541276313ac26-1745975236.us-east-1.elb.amazonaws.com   18091:30716/TCP,11207:31845/TCP   89m
+ckdemo-0006-exposed-ports      LoadBalancer   10.100.24.45     a1546a98ec9cd11e988541276313ac26-1471357696.us-east-1.elb.amazonaws.com   11207:30645/TCP,18091:31792/TCP   87m
+ckdemo-0007-exposed-ports      LoadBalancer   10.100.225.136   a58c87ecbc9cd11e988541276313ac26-105279754.us-east-1.elb.amazonaws.com    11207:32754/TCP,18091:30044/TCP   85m
+ckdemo-0008-exposed-ports      LoadBalancer   10.100.105.23    a9bb9db5bc9cd11e988541276313ac26-425926447.us-east-1.elb.amazonaws.com    18091:31156/TCP,18092:31766/TCP   83m
+ckdemo-0009-exposed-ports      LoadBalancer   10.100.156.109   ad2fcf7c1c9cd11e988541276313ac26-549415956.us-east-1.elb.amazonaws.com    18091:31214/TCP,18092:31299/TCP   82m
+
+  $ kubectl port-forward ckdemo-0006 18091:18091 --namespace emart
+```
+
+Refreshing external-ip is not a desired behavior from Couchbase client perspective and in later section we will describe how you can add ```externalDNS``` in front of your EKS cluster so that there is no impact of IP being changed as client code will use Fully Qualified Domain Names (FQDN) instead.
+
+# 6. Conclusion
 
 Couchbase Autonomous Operator makes management and orchestration of Couchbase Cluster seamless on the Kubernetes platform. What makes this operator unique is its ability to easily use storage classes offered by different cloud vendors (AWS, Azure, GCP, RedHat OpenShift, etc) to create persistent volumes, which is then used by the Couchbase database cluster to persistently store the data. In the event of pod or container failure, Kubernetes re-instantiate a new pod/container automatically and simply remounts the persistent volumes back, making the recovery fast. It also helps maintain the SLA of the system during infrastructure failure recovery because only delta recovery is needed as opposed to full-recovery, if persistent volumes are not being used.
 
