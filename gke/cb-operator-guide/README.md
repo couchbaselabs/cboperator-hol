@@ -851,18 +851,15 @@ spec:
 
 
 # 5. **Running sample application using SDK** 
-
-
 		
-## 5.1. **Create user namespace for Couchbase Client - SDK**
+## 5.1. **Create user namespace for Couchbase Client - SDK**
 
 ```
 $ kubectl create namespace apps
 namespace/apps created
 ```
 
-
-## 5.2. **Deploy Couchbase Client - SDK App**
+## 5.2. **Deploy Couchbase Client - SDK App**
 
 Create the application file [app_pod.yaml](files/app_pod.yaml)
 
