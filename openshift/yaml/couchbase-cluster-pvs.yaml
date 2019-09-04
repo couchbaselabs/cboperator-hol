@@ -1,0 +1,64 @@
+apiVersion: couchbase.com/v1
+kind: CouchbaseCluster
+metadata:
+  name: cb-example
+spec:
+  authSecret: cb-example-auth
+  exposeAdminConsole: true
+  adminConsoleServices:
+    - data
+  exposedFeatures:
+    - xdcr
+  exposedFeatureServiceType: NodePort
+  softwareUpdateNotifications: true
+  disableBucketManagement: false
+  logRetentionTime: 604800s
+  logRetentionCount: 20
+  baseImage: registry.connect.redhat.com/couchbase/server
+  buckets:
+    - conflictResolution: seqno
+      enableFlush: true
+      evictionPolicy: fullEviction
+      ioPriority: high
+      memoryQuota: 128
+      conflictResolution: seqno
+      name: tweets
+      replicas: 1
+      type: couchbase
+      compressionMode: passive
+  cluster:
+    analyticsServiceMemoryQuota: 1024
+    autoFailoverMaxCount: 3
+    autoFailoverOnDataDiskIssues: true
+    autoFailoverOnDataDiskIssuesTimePeriod: 120
+    autoFailoverServerGroup: false
+    autoFailoverTimeout: 10
+    clusterName: cb-example
+    dataServiceMemoryQuota: 512
+    eventingServiceMemoryQuota: 256
+    indexServiceMemoryQuota: 512
+    indexStorageSetting: memory_optimized
+    searchServiceMemoryQuota: 256
+  servers:
+    - name: all_services
+      services:
+        - data
+        - index
+        - query
+        #- search
+        #- eventing
+        #- analytics
+      size: 2
+      pod:
+        volumeMounts:
+          default: couchbase
+          data: couchbase
+  version: 6.0.1-1         
+  volumeClaimTemplates:
+  - metadata:
+      name: couchbase
+    spec:
+      storageClassName: "couchbase-sc"
+      resources:
+        requests:
+          storage: 5Gi  

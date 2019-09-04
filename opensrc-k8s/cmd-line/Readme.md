@@ -2,26 +2,29 @@
 
 ## Scope
 	Setup couchbase operator 1.2 on open source kubernetes using minikube
-	The deployment would be using command line tools to deploy 
-	
+	The deployment would be using command line tools to deploy
+
 ## Overview of the hand on labs
 	Pre-requisities
 	Env details
-	Deploy adminission controller
+	Deploy admission controller
 	Deploy Couchbase Autonomous Operator
-	Deploymnent Couchbase Cluster with following details
-		* PV 
+	Deploying Couchbase Cluster with following details
+		* PV
 		* TLS certificates
 	Delete a pod
 	Check that cluster self-heals
 	Cluster is healthy
-	
+	Scaling up and down
+	Backup and Restore Couchbase server
+	Run sample Python application using CB Python SDK
+
 
 ## Pre-requisites
 * CLI / UI
 
 	`$ brew update`
-	 
+
 * Install hypervisor from link below
 
 	<https://download.virtualbox.org/virtualbox/6.0.10/VirtualBox-6.0.10-132072-OSX.dmg>
@@ -42,32 +45,40 @@
 
 	`$ sudo kubectl cluster-info`
 
-	
+
 ## Environment details
 * minikue on macos : v1.2.0
 
+* Set the vCPUs and Memory to 4 and 4GiB so that Couchbase operator would work on laptop
+
+
+```
+sudo minikube config set memory 4096
+sudo minikube config set cpus 4
+```
+
 `$ sudo minikube config view`
-	
+
 	- cpus: 4
 	- memory: 4096
-	
+
 ## minikube cluster details
 
 	$ sudo kubectl get nodes
-	
+
 	NAME       STATUS   ROLES    AGE     VERSION
 	minikube   Ready    master   3d11h   v1.15.0
-	
 
-### Deploy adminission controller
+
+### Deploy admission controller
 *	cd into the files dir to access the required yaml files
 First we will create a namespace to localize our deployment
-	
+
 `$ sudo kubectl create namespace cbdb`
 
 *	Deployment adminission controller
 
-`	$ sudo kubectl create -f admission.yaml --namespace cbdb`	
+`	$ sudo kubectl create -f admission.yaml --namespace cbdb`
 
 *	Query the deployment
 
@@ -76,45 +87,45 @@ First we will create a namespace to localize our deployment
 	NAME                           READY   UP-TO-DATE   AVAILABLE   AGE
 	couchbase-operator-admission   1/1     1            1           11m
 	```
-		
+
 ## Deploy Couchbase Autonomous Operator
 *	Deploy Operator Role
 
 	`sudo kubectl create -f operator-role.yaml --namespace cbdb`
-	
+
 *	Create service account
 
 	`sudo kubectl create serviceaccount couchbase-operator --namespace cbdb`
-	
+
 *	Bind the service account 'couchbase-operator' with operator-role
 
 	`sudo kubectl create rolebinding couchbase-operator --role couchbase-operator --serviceaccount cbdb:couchbase-operator --namespace cbdb`
-	
+
 *	Deploy Custom Resource Definition
 
 	`sudo kubectl create -f operator-deployment.yaml --namespace cbdb`
-	
+
 * Query deployment
 
 	```
-	
+
 	$ sudo kubectl get deployment --namespace cbdb
 	NAME                           READY   UP-TO-DATE   AVAILABLE   AGE
 	couchbase-operator             1/1     1            1           20m
 	couchbase-operator-admission   1/1     1            1           20m
-	
-	
-	```	
 
-## Deploymnent Couchbase Cluster
+
+	```
+
+## Deploying Couchbase Cluster
 
 ### Deploy TLS certs in namespace cbdb
 Using help file below, make sure use appropriate namespace, here I have used 'cbdb'
 
-Link is [here] (https://raw.githubusercontent.com/ramdhakne/blogs/master/external-connectivity/x509-help.txt)
+Link is [here](../../guides/configure-tls.md)
 
 ### Query the TLS secrets
-	
+
 ```
 $ sudo kubectl get secrets --namespace cbdb
 NAME                                       TYPE                                  DATA   AGE
@@ -138,7 +149,7 @@ standard (default)   k8s.io/minikube-hostpath   3d14h
 ### Deploy the Couchbase cluster
 
 `sudo kubectl create -f couchbase-persistent-cluster-tls-k8s-minikube.yaml --namespace cbdb`
-	
+
 ### If everything goes well then we should see the Couchbase cluster deployed with PVs, TLS certs
 
 ```
@@ -190,7 +201,7 @@ Server would automatically failover, depending on the autoFailovertimeout
 
 ![3-svr-autofailover](assets/3-svr-autofailover.png)
 
-A lost couchbase is auto-recovered by Couchbase Operator as its contantly watching cluster definition
+A lost couchbase is auto-recovered by Couchbase Operator as its constantly watching cluster definition
 
 ![4-auto-rebalance](assets/4-auto-rebalance.png)
 
@@ -205,7 +216,7 @@ Change size to 4 from 3
        compressionMode: passive
    servers:
 -    - size: 3
-+    - size: 4 
++    - size: 4
        name: data
        services:
          - data
@@ -217,11 +228,17 @@ Run
 sudo kubectl apply -f couchbase-persistent-cluster-tls-k8s-minikube.yaml --namespace cbdb
 ```
 
-## Scaling down 
+## Scaling down
 
 Its exact opposite of scaling up, reduce the cluster to any number. But not less than 3. Couchbase MVP is 3 nodes.
 
-## Run sample NodeJS application
+## Backup and Restore Couchbase server
+
+Backup and restore the Couchbase server
+
+![here](https://github.com/couchbaselabs/cboperator-hol/blob/master/opensrc-k8s/cmd-line/files/BackupCB.md)
+
+## Run sample Python application
 
 ### Create namespace for app tier
 
@@ -273,6 +290,8 @@ Connection string for me looks like below:
 
 `cluster = Cluster('couchbase://cb-opensource-k8s-0000.cb-opensource-k8s.cbdb.svc.cluster.local')`
 
+Since both the namespaces in minikube share same kube-dns
+
 Run the program
 
 ```
@@ -304,7 +323,7 @@ Upserted document should looks like this
 ![upsert-doc](assets/5-upserted-doc.png)
 
 ## Conclusion
-We deployed Couchbase Autonomous Operator with version 1.2 on minikue version: v1.2.0. Couchbase cluster requires admission controller, RBACs with role limited to the namespace (more secure). CRD deployed has cluster wide scope, but that is by design. Couchbase cluster deployed had PV support and customer x509 certs. 
+We deployed Couchbase Autonomous Operator with version 1.2 on minikue version: v1.2.0. Couchbase cluster requires admission controller, RBACs with role limited to the namespace (more secure). CRD deployed has cluster wide scope, but that is by design. Couchbase cluster deployed had PV support and customer x509 certs.
 We saw how how Couchbase cluster self-heals, and brings cluster up and healthy back without any user intervention.
 
 We also saw how to install Couchbase python sdk in a Applicaiton pod deployed in its namespace and we can have that application talk to Couchbase server and perform CRUD operations.

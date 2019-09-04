@@ -32,6 +32,7 @@ Figure 1: Couchbase Autonomous Operator for Kubernetes self-monitors and self-he
 ### Amazon EKS
 
 * [Couchbase Operator guide](eks)
+* [Helm and the Couchbase Autonomus Operator guide](eks/helm-guide)
 
 ### Google GKE
 
