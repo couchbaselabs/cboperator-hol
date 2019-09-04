@@ -41,14 +41,16 @@
 
 	4.4. **Backing up and Restoring**
 	
-	4.5. **Cleanup**
 	
 5. **Running sample application using SDK** 
 		
 	5.1. **Create user namespace for Couchbase Client - SDK**
 
 6. **Troubleshooting**
-7. **Conclusion**
+7. **Cleanup**
+
+8. **Conclusion**
+
 
 	
 # Scope
