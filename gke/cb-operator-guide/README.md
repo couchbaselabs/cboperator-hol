@@ -45,6 +45,8 @@
 5. **Running sample application using SDK** 
 		
 	5.1. **Create user namespace for Couchbase Client - SDK**
+	
+	5.2. **Deploy Couchbase Client - SDK App**
 
 6. **Troubleshooting**
 7. **Cleanup**
@@ -754,7 +756,7 @@ spec:
       containers:
         - name: couchbase-cluster-backup-create
           image: couchbase/server:enterprise-6.0.2
-          command: ["cbbackupmgr", "config", "--archive", "/backups", "--repo", "couchbase"]
+          command: ["cbbackupmgr", "config", "--archive", "/backups", "--repo", "demo"]
           volumeMounts:
             - name: "couchbase-cluster-backup-volume"
               mountPath: "/backups"
@@ -805,7 +807,7 @@ spec:
       spec:
         containers:
           - name: couchbase-cluster-backup-prune
-            image: couchbase/server:enterprise-6.0.1
+            image: couchbase/server:enterprise-6.0.2
             command: ["cbbackupmgr", "merge", "--archive", "/backups", "--repo", "demo", "--start", "2018-07-25T13_02_45.92773833Z", "--end", "2020-07-25T14_57_57.83339572Z"]
             volumeMounts:
               - name: "couchbase-cluster-backup-volume"
@@ -852,7 +854,7 @@ spec:
 
 
 		
-##  5.1. **Create user namespace for Couchbase Client - SDK**
+## 5.1. **Create user namespace for Couchbase Client - SDK**
 
 ```
 $ kubectl create namespace apps
@@ -860,7 +862,7 @@ namespace/apps created
 ```
 
 
-##  5.2. **Deploy Couchbase Client - SDK App**
+## 5.2. **Deploy Couchbase Client - SDK App**
 
 Create the application file [app_pod.yaml](files/app_pod.yaml)
 
