@@ -141,6 +141,8 @@ kubectl create -f crd.yaml
 
 ### 2.4. Install Admission Controller
 
+The primary purpose of the admission controller is to validate Couchbase cluster configuration changes before the Operator acts on them, thus protecting your Couchbase deployment (and the Operator) from any accidental damage that might arise from an invalid configuration.
+
 ```
 kubectl create -f admission.yaml 
 ```
@@ -751,7 +753,7 @@ spec:
     spec:
       containers:
         - name: couchbase-cluster-backup-create
-          image: couchbase/server:enterprise-6.0.1
+          image: couchbase/server:enterprise-6.0.2
           command: ["cbbackupmgr", "config", "--archive", "/backups", "--repo", "couchbase"]
           volumeMounts:
             - name: "couchbase-cluster-backup-volume"
@@ -763,7 +765,7 @@ spec:
       restartPolicy: Never
 ```      
       
-A job is created to mount the persistent volume and initialize a backup repository. The repository is named couchbase which will map to the cluster name in later specifications.
+A job is created to mount the persistent volume and initialize a backup repository. The repository is named `demo` which will map to the cluster name in later specifications.
 
 ```
 kind: CronJob
@@ -778,8 +780,8 @@ spec:
         spec:
           containers:
             - name: couchbase-cluster-backup-full
-              image: couchbase/server:enterprise-6.0.1
-              command: ["cbbackupmgr", "backup", "--archive", "/backups", "--repo", "couchbase", "--cluster", "couchbase://couchbase.default.svc", "--username", "Administrator", "--password", "password"]
+              image: couchbase/server:enterprise-6.0.2
+              command: ["cbbackupmgr", "backup", "--archive", "/backups", "--repo", "demo", "--cluster", "couchbase://cb-gke-emart.emart.svc", "--username", "Administrator", "--password", "password"]
               volumeMounts:
                 - name: "couchbase-cluster-backup-volume"
                   mountPath: "/backups"
@@ -804,7 +806,7 @@ spec:
         containers:
           - name: couchbase-cluster-backup-prune
             image: couchbase/server:enterprise-6.0.1
-            command: ["cbbackupmgr", "merge", "--archive", "/backups", "--repo", "couchbase", "--start", "2018-07-25T13_02_45.92773833Z", "--end", "2018-07-25T14_57_57.83339572Z"]
+            command: ["cbbackupmgr", "merge", "--archive", "/backups", "--repo", "demo", "--start", "2018-07-25T13_02_45.92773833Z", "--end", "2020-07-25T14_57_57.83339572Z"]
             volumeMounts:
               - name: "couchbase-cluster-backup-volume"
                 mountPath: "/backups"
@@ -832,8 +834,8 @@ spec:
     spec:
       containers:
         - name: couchbase-cluster-restore
-          image: couchbase/server:enterprise-6.0.1
-          command: ["cbbackupmgr", "restore", "--archive", "/backups", "--repo", "couchbase", "--cluster", "couchbase://couchbase.default.svc", "--username", "Administrator", "--password", "password"]
+          image: couchbase/server:enterprise-6.0.2
+          command: ["cbbackupmgr", "restore", "--archive", "/backups", "--repo", "demo", "--cluster", "couchbase://couchbase.emart.svc", "--username", "Administrator", "--password", "password"]
           volumeMounts:
             - name: "couchbase-cluster-backup-volume"
               mountPath: "/backups"
@@ -859,6 +861,8 @@ namespace/apps created
 
 
 ##  5.2. **Deploy Couchbase Client - SDK App**
+
+Create the application file [app_pod.yaml](files/app_pod.yaml)
 
 ```
 $ kubectl create -f app_pod.yaml --namespace apps
@@ -996,8 +1000,12 @@ kubectl delete rolebinding couchbase-operator --namespace emart
 kubectl delete serviceaccount couchbase-operator --namespace emart
 kubectl delete -f operator-deployment.yaml --namespace emart
 kubectl get deployments --namespace emart
-kubectl delete -f admission.yaml --namespace emart
+kubectl delete -f sc-gce-pd-ssd.yaml --namespace emart
+kubectl delete -f sc-gce-pd-slow.yaml --namespace emart 
 kubectl delete pod app01 --namespace apps
+kubectl delete -f namespace.yaml
+kubectl delete -f admission.yaml
+kubectl delete -f crd.yaml
 ```
 
 
