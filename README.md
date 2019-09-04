@@ -25,7 +25,7 @@ Figure 1: Couchbase Autonomous Operator for Kubernetes self-monitors and self-he
 
 
 ## Deployments On-premise
-* [Kubernetes Open Source Command Line](opensrc-k8s)
+* [Kubernetes Open Source Command Line](opensrc-k8s/cmd-line)
 
 ## Deployments on Cloud
 
@@ -36,6 +36,7 @@ Figure 1: Couchbase Autonomous Operator for Kubernetes self-monitors and self-he
 
 ### Google GKE
 
+* [Couchbase Operator guide](gke/cb-operator-guide)
 * [Helm deployment](gke/helm-guide)
 
 ### Azure AKS

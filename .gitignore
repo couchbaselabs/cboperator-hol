@@ -1,0 +1,10 @@
+_book
+node_modules
+.apdisk
+*.log
+.DS_Store
+*.bak
+.TemporaryItems
+Thumbs.db
+thumbs.db
+*.md-e
