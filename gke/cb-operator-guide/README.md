@@ -39,7 +39,9 @@
 
 	4.3. **Couchbase automated upgrade**
 
-	4.4. **Create backup**
+	4.4. **Backing up and Restoring**
+	
+	4.5. **Cleanup**
 	
 5. **Running sample application using SDK** 
 		
@@ -708,7 +710,137 @@ Figure 6: Couchbase Cluster getting upgraded one pod at a time in and online fas
 Just wait for some time and cluster will upgraded one pod at a time in a rolling fashion.
 
 
-## 4.4. Create backup
+## 4.4. Backing up and Restoring a Couchbase Deployment
+
+The Couchbase Autonomous Operator automatically repairs and rebalances Couchbase clusters to maintain high availability. It is considered best practice to regularly backup your data, and also test restoring it works as expected before disaster recovery is required.
+
+This functionality is not provided by the Operator and left to the cluster administrator to define backup policies and test data restoration. This section describes some common patterns that may be employed to perform the required functions.
+
+
+### 4.4.1. Backing Up
+
+The Kubernetes resource definitions below illustrate a typical arrangement for backup that saves the state of the entire cluster.
+
+```
+# Define backup storage volume
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: couchbase-cluster-backup
+spec:
+  resources:
+    requests:
+      storage: 100Gi
+  storageClassName: standard
+  accessModes:
+    - ReadWriteOnce
+```
+    
+A persistent volume is claimed in order to keep data safe in the event of an outage. You will need to plan the claim size based on your expected data set size, the number of days data retention and whether incremental backups are used at all.
+
+```
+# Create a backup repository
+kind: Job
+apiVersion: batch/v1
+metadata:
+  name: couchbase-cluster-backup-create
+spec:
+  template:
+    spec:
+      containers:
+        - name: couchbase-cluster-backup-create
+          image: couchbase/server:enterprise-6.0.1
+          command: ["cbbackupmgr", "config", "--archive", "/backups", "--repo", "couchbase"]
+          volumeMounts:
+            - name: "couchbase-cluster-backup-volume"
+              mountPath: "/backups"
+      volumes:
+        - name: couchbase-cluster-backup-volume
+          persistentVolumeClaim:
+            claimName: couchbase-cluster-backup
+      restartPolicy: Never
+```      
+      
+A job is created to mount the persistent volume and initialize a backup repository. The repository is named couchbase which will map to the cluster name in later specifications.
+
+```
+kind: CronJob
+apiVersion: batch/v1beta1
+metadata:
+  name: couchbase-cluster-backup
+spec:
+  schedule: "0 3 * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+            - name: couchbase-cluster-backup-full
+              image: couchbase/server:enterprise-6.0.1
+              command: ["cbbackupmgr", "backup", "--archive", "/backups", "--repo", "couchbase", "--cluster", "couchbase://couchbase.default.svc", "--username", "Administrator", "--password", "password"]
+              volumeMounts:
+                - name: "couchbase-cluster-backup-volume"
+                  mountPath: "/backups"
+          volumes:
+            - name: couchbase-cluster-backup-volume
+              persistentVolumeClaim:
+                claimName: couchbase-cluster-backup
+          restartPolicy: Never
+```
+
+A backup cron job runs daily at a time that had low cluster utilization. The first time it runs a full backup is taken, for other runs an incremental backup is run to save disk space.
+
+```
+kind: Job
+apiVersion: batch/v1
+metadata:
+  name: couchbase-cluster-backup-merge
+spec:
+  spec:
+    template:
+      spec:
+        containers:
+          - name: couchbase-cluster-backup-prune
+            image: couchbase/server:enterprise-6.0.1
+            command: ["cbbackupmgr", "merge", "--archive", "/backups", "--repo", "couchbase", "--start", "2018-07-25T13_02_45.92773833Z", "--end", "2018-07-25T14_57_57.83339572Z"]
+            volumeMounts:
+              - name: "couchbase-cluster-backup-volume"
+                mountPath: "/backups"
+        volumes:
+         - name: couchbase-cluster-backup-volume
+            persistentVolumeClaim:
+              claimName: couchbase-cluster-backup
+        restartPolicy: Never
+```
+
+A merge job should be run periodically to compact full and incremental backups into a single full backup. This step will reduce disk utilization.
+
+
+### 4.4.2. Restoring
+
+Much like a backup we can restore data to a new Couchbase cluster with a Kubernetes Job.
+
+```
+kind: Job
+apiVersion: batch/v1
+metadata:
+  name: couchbase-cluster-restore
+spec:
+  template:
+    spec:
+      containers:
+        - name: couchbase-cluster-restore
+          image: couchbase/server:enterprise-6.0.1
+          command: ["cbbackupmgr", "restore", "--archive", "/backups", "--repo", "couchbase", "--cluster", "couchbase://couchbase.default.svc", "--username", "Administrator", "--password", "password"]
+          volumeMounts:
+            - name: "couchbase-cluster-backup-volume"
+              mountPath: "/backups"
+      volumes:
+        - name: couchbase-cluster-backup-volume
+          persistentVolumeClaim:
+            claimName: couchbase-cluster-backup
+      restartPolicy: Never
+```      
 
 
 
@@ -718,32 +850,115 @@ Just wait for some time and cluster will upgraded one pod at a time in a rolling
 		
 ##  5.1. **Create user namespace for Couchbase Client - SDK**
 
+```
+$ kubectl create namespace apps
+namespace/apps created
+```
+
 
 ##  5.2. **Deploy Couchbase Client - SDK App**
 
+```
+$ kubectl create -f app_pod.yaml --namespace apps
+pod/app01 created
+```
+
+**Run the sample python program to upsert a document into couchbase cluster**
+
+Login to the pods shell/exec into app pod
+
+```
+$ kubectl exec -ti app01 bash --namespace apps
+```
+
+**Prep the pod for installing python SDK**
+
+[prep-app-pod for python SDK](https://docs.google.com/document/d/14lGw0KYOAzByHeO1yzNLEbfxe6MWQTNK/edit#heading=h.6ctclr4lgnu3)
+
+**Edit the program with FQDN of the pod**
+
+Run below command after exec'ing into the couchbase pod
+
+```
+$ kubectl exec -ti cb-opensource-k8s-0000 bash --namespace emart
+```
+
+```
+# hostname -f
+cb-opensource-k8s-0000.cb-opensource-k8s.cbdb.svc.cluster.local
+```
+
+Edit the program with correct connection string
+
+Connection string for me looks like below:
+
+```
+cluster = Cluster('couchbase://cb-opensource-k8s-0000.cb-opensource-k8s.cbdb.svc.cluster.local')
+```
+
+Since both the namespaces in minikube share same kube-dns
+
+Run the program
+
+```
+root@app01:/# python python_sdk_example.py
+CB Server connection PASSED
+Open the bucket...
+Done...
+Upserting a document...
+Done...
+Getting non-existent key. Should fail..
+Got exception for missing doc
+Inserting a doc...
+Done...
+Getting an existent key. Should pass...
+Value for key 'babyliz_liz'
+
+Value for key 'babyliz_liz'
+{u'interests': [u'Holy Grail', u'Kingdoms and Dungeons'], u'type': u'Royales', u'name': u'Baby Liz', u'email': u'babyliz@cb.com'}
+Delete a doc with key 'u:baby_arthur'...
+Done...
+Value for key [u:baby_arthur]
+Got exception for missing doc for key [u:baby_arthur] with error <Key=u'u:baby_arthur', RC=0xD[The key does not exist on the server], Operational Error, Results=1, C Source=(src/multiresult.c,316), Tracing Output={"u:baby_arthur": {"c": "0000000036fb5729/523b08473029eae3", "b": "default", "i": 1754553113405298788, "l": "172.17.0.9:36304", "s": "kv:Unknown", "r": "cb-opensource-k8s-0001.cb-opensource-k8s.cbdb.svc:11210", "t": 2500000}}>
+Closing connection to the bucket...
+root@app01:/#
+```
+
+Upserted document should looks like this
+
+![upserted doc](https://github.com/couchbaselabs/cboperator-hol/blob/master/opensrc-k8s/cmd-line/assets/5-upserted-doc.png)
 
 
 # 6. Troubleshooting
 
 
---- 
+## 6.1. Certificate cannot be verified
 
-josemolina@EMEA-JoseMolina  ~/couchbase/kubernetes/operator/gke-emart  kubectl create -f couchbase-cluster-with-pv-tls-serverGroups_1.2.yaml --namespace emart
-Error from server: error when creating "couchbase-cluster-with-pv-tls-serverGroups_1.2.yaml": admission webhook "couchbase-operator-admission.default.svc" denied the request: validation failure list:
-spec.servers[0].default should be one of []
-spec.servers[0].data should be one of []
-spec.servers[1].default should be one of []
-spec.servers[1].data should be one of []
-spec.servers[2].default should be one of []
-spec.servers[2].data should be one of []
-spec.servers[3].default should be one of []
-spec.servers[3].index should be one of []
-spec.servers[4].default should be one of []
-spec.servers[4].index should be one of []
+Issue:
+
+```
+$ kubectl create -f couchbase-cluster-with-pv-tls-serverGroups_1.2.yaml --namespace emart
+Error from server: error when creating "couchbase-cluster-with-pv-tls-serverGroups_1.2.yaml": admission webhook "couchbase-operator-admission.default.svc" denied 
+
+...
+
 certificate cannot be verified: x509: certificate is valid for cb-gke-emart-tls, not verify.cb-gke-emart-tls.emart.svc
+```
+
+Review the steps on [how to create a custom](guides/tls-certificate.md). Repeat the steps of the cerficiation and ensure the cluster name regular expression matches with your cluster name. Regular expression has to be enquoted with `"`
+
+```
+$ ./easyrsa --subject-alt-name="DNS:*.yourClusterName.yourNamespace.svc" build-server-full couchbase-server nopass
+```
+example with cluster `cb-gke-emart` in namespace `emart`: 
+```
+$ ./easyrsa --subject-alt-name="DNS:*.cb-gke-emart-tls.emart.svc" build-server-full couchbase-server nopass
+```
+
+## 6.2. Persistent Volume 
 
 
-
+```
 kubectl create -f couchbase-cluster-with-pv-tls-serverGroups_1.2.yaml --namespace emart
 Error from server: error when creating "couchbase-cluster-with-pv-tls-serverGroups_1.2.yaml": admission webhook "couchbase-operator-admission.default.svc" denied the request: validation failure list:
 spec.servers[0].default should be one of []
@@ -756,10 +971,36 @@ spec.servers[3].default should be one of []
 spec.servers[3].index should be one of []
 spec.servers[4].default should be one of []
 spec.servers[4].index should be one of []
+```
+
+If you are deploying in multiple Availability Zones, all your persistent volumes need to include: 
+
+```
+volumeBindingMode: WaitForFirstConsumer
+```
+
+**Note:**  remove/alter the `default` persitent volume to include `volumeBindingMode: WaitForFirstConsumer`
 
 
 
-# 7. Conclusion
+# 7. Cleanup
+
+Perform these steps below to un-config all the k8s assets created.
+
+```
+kubectl delete -f secret.yaml --namespace emart
+kubectl delete -f couchbase-cluster-with-pv-tls-serverGroups.yaml --namespace emart
+kubectl delete rolebinding couchbase-operator --namespace emart
+kubectl delete serviceaccount couchbase-operator --namespace emart
+kubectl delete -f operator-deployment.yaml --namespace emart
+kubectl get deployments --namespace emart
+kubectl delete -f admission.yaml --namespace emart
+kubectl delete pod app01 --namespace apps
+```
+
+
+
+# 8. Conclusion
 
 Couchbase Autonomous Operator makes management and orchestration of Couchbase Cluster seamless on the Kubernetes platform. What makes this operator unique is its ability to easily use storage classes offered by different cloud vendors (AWS, Azure, GCP, RedHat OpenShift, etc) to create persistent volumes, which is then used by the Couchbase database cluster to persistently store the data. In the event of pod or container failure, Kubernetes re-instantiate a new pod/container automatically and simply remounts the persistent volumes back, making the recovery fast. It also helps maintain the SLA of the system during infrastructure failure recovery because only delta recovery is needed as opposed to full-recovery, if persistent volumes are not being used.
 
