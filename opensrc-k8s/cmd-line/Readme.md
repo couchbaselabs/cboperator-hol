@@ -89,6 +89,12 @@ First we will create a namespace to localize our deployment
 	```
 
 ## Deploy Couchbase Autonomous Operator
+
+*       Deploy the Custom Resource Definition
+	Scope of the CRD can be k8s cluster wide or localized to the namespace. Choice is upto devops/k8s administrator. In 		the example below its localized to the a particular namespace
+	
+	`sudo kubectl create -f crd.yaml --namespace cbdb`
+	
 *	Deploy Operator Role
 
 	`sudo kubectl create -f operator-role.yaml --namespace cbdb`
