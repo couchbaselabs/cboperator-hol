@@ -90,7 +90,8 @@ First we will create a namespace to localize our deployment
 
 ## Deploy Couchbase Autonomous Operator
 
-*       Deploy the Custom Resource Definition
+*	Deploy the Custom Resource Definition
+
 	Scope of the CRD can be k8s cluster wide or localized to the namespace. Choice is upto devops/k8s administrator. In 		the example below its localized to the a particular namespace
 	
 	`sudo kubectl create -f crd.yaml --namespace cbdb`
@@ -127,7 +128,6 @@ First we will create a namespace to localize our deployment
 
 ### Deploy TLS certs in namespace cbdb
 Using help file below, make sure use appropriate namespace, here I have used 'cbdb'
-
 Link is [here](../../guides/configure-tls.md)
 
 ### Query the TLS secrets
