@@ -1,0 +1,113 @@
+apiVersion: couchbase.com/v1
+kind: CouchbaseCluster
+metadata:
+  name: cb-gke-emart-tls
+spec:
+  baseImage: couchbase/server
+  version: enterprise-5.5.5
+  authSecret: cb-example-auth
+  tls:
+     static:
+       member:
+         serverSecret: couchbase-server-tls
+       operatorSecret: couchbase-operator-tls
+  exposeAdminConsole: true
+  adminConsoleServices:
+    - data
+  exposedFeatures:
+    - xdcr
+  exposedFeatureServiceType: NodePort
+  cluster:
+    dataServiceMemoryQuota: 1024
+    indexServiceMemoryQuota: 1024
+    searchServiceMemoryQuota: 1024
+    eventingServiceMemoryQuota: 1024
+    analyticsServiceMemoryQuota: 1024
+    indexStorageSetting: plasma
+    autoFailoverTimeout: 10
+    autoFailoverMaxCount: 3
+    autoFailoverOnDataDiskIssues: true
+    autoFailoverOnDataDiskIssuesTimePeriod: 120
+    autoFailoverServerGroup: false
+  buckets:
+    - name: demo
+      type: couchbase
+      memoryQuota: 128
+      replicas: 1
+      ioPriority: high
+      evictionPolicy: valueOnly
+      conflictResolution: seqno
+      enableFlush: true
+      enableIndexReplica: false
+      compressionMode: passive
+  serverGroups:
+    - ServerGroup1
+    - ServerGroup2
+    - ServerGroup3
+  servers:
+    - name: data-europe-west3-a 
+      size: 1
+      services:
+        - data
+      pod:
+        volumeMounts:
+          default: pvc-default 	# /opt/couchbase/var/lib/couchbase
+          data: pvc-fast-data	# /mnt/data
+    - name: data-europe-west3-b
+      size: 1
+      services:
+        - data
+      pod:
+        volumeMounts:
+          default: pvc-default # /opt/couchbase/var/lib/couchbase
+          data: pvc-fast-data  # /mnt/data
+    - name: data-europe-west3-c
+      size: 1
+      services:
+        - data
+      pod:
+        volumeMounts:
+          default: pvc-default   # /opt/couchbase/var/lib/couchbase
+          data: pvc-fast-data    # /mnt/data
+    - name: query-europe-west3-b
+      size: 1
+      services:
+        - query
+        - index
+      pod:
+        volumeMounts:
+          default: pvc-default    # /opt/couchbase/var/lib/couchbase
+          index: pvc-fast-index   # /mnt/data
+    - name: query-europe-west3-c
+      size: 1
+      services:
+        - index
+        - query
+      pod:
+        volumeMounts:
+          default: pvc-default  # /opt/couchbase/var/lib/couchbase
+          index: pvc-fast-index  # /mnt/index
+  securityContext:
+    fsGroup: 1000
+  volumeClaimTemplates:
+    - metadata:
+        name: pvc-default
+      spec:
+        storageClassName: standard
+        resources:
+          requests:
+            storage: 1Gi
+    - metadata:
+        name: pvc-fast-data
+      spec:
+        storageClassName: sc-fast-storage
+        resources:
+          requests:
+            storage: 5Gi
+    - metadata:
+        name: pvc-fast-index
+      spec:
+        storageClassName: sc-fast-storage
+        resources:
+          requests:
+            storage: 3Gi

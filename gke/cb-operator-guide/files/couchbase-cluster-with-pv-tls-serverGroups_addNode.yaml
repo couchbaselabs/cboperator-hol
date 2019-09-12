@@ -1,0 +1,130 @@
+apiVersion: couchbase.com/v1
+kind: CouchbaseCluster
+metadata:
+  name: cb-gke-emart-tls
+spec:
+  baseImage: couchbase/server
+  version: enterprise-5.5.5
+  authSecret: cb-example-auth
+  tls:
+     static:
+       member:
+         serverSecret: couchbase-server-tls
+       operatorSecret: couchbase-operator-tls
+  exposeAdminConsole: true
+  adminConsoleServices:
+    - data
+  exposedFeatures:
+    - xdcr
+  exposedFeatureServiceType: NodePort
+  cluster:
+    dataServiceMemoryQuota: 1024
+    indexServiceMemoryQuota: 1024
+    searchServiceMemoryQuota: 1024
+    eventingServiceMemoryQuota: 1024
+    analyticsServiceMemoryQuota: 1024
+    indexStorageSetting: plasma
+    autoFailoverTimeout: 10
+    autoFailoverMaxCount: 3
+    autoFailoverOnDataDiskIssues: true
+    autoFailoverOnDataDiskIssuesTimePeriod: 120
+    autoFailoverServerGroup: false
+  buckets:
+    - name: demo
+      type: couchbase
+      memoryQuota: 128
+      replicas: 1
+      ioPriority: high
+      evictionPolicy: valueOnly
+      conflictResolution: seqno
+      enableFlush: true
+      enableIndexReplica: false
+      compressionMode: passive
+  servers:
+    - name: data-europe-west1-b 
+      size: 1
+      services:
+        - data
+      serverGroups:
+       - europe-west1-b
+      pod:
+        volumeMounts:
+          default: pvc-default 	# /opt/couchbase/var/lib/couchbase
+          data: pvc-fast-data	# /mnt/data
+    - name: data-europe-west1-c
+      size: 1
+      services:
+        - data
+      serverGroups:
+       - europe-west1-c
+      pod:
+        volumeMounts:
+          default: pvc-default # /opt/couchbase/var/lib/couchbase
+          data: pvc-fast-data
+    - name: data-europe-west1-d
+      size: 1
+      services:
+        - data
+      serverGroups:
+       - europe-west1-d
+      pod:
+        volumeMounts:
+          default: pvc-default   # /opt/couchbase/var/lib/couchbase
+          data: pvc-fast-data
+    - name: query-europe-west1-b
+      size: 1
+      services:
+        - index
+        - query
+      serverGroups:
+       - europe-west1-b
+      pod:
+        volumeMounts:
+          default: pvc-default  # /opt/couchbase/var/lib/couchbase
+          index: pvc-fast-index  # /mnt/index
+    - name: query-europe-west1-c
+      size: 1
+      services:
+        - query
+        - index
+      serverGroups:
+       - europe-west1-c
+      pod:
+        volumeMounts:
+          default: pvc-default    # /opt/couchbase/var/lib/couchbase
+          index: pvc-fast-index   # /mnt/data
+    - name: query-europe-west1-d
+      size: 1
+      services:
+        - index
+        - query
+      serverGroups:
+       - europe-west1-d
+      pod:
+        volumeMounts:
+          default: pvc-default  # /opt/couchbase/var/lib/couchbase
+          index: pvc-fast-index  # /mnt/index
+  securityContext:
+    fsGroup: 1000
+  volumeClaimTemplates:
+    - metadata:
+        name: pvc-default
+      spec:
+        storageClassName: slow
+        resources:
+          requests:
+            storage: 1Gi
+    - metadata:
+        name: pvc-fast-data
+      spec:
+        storageClassName: sc-fast-storage
+        resources:
+          requests:
+            storage: 5Gi
+    - metadata:
+        name: pvc-fast-index
+      spec:
+        storageClassName: sc-fast-storage
+        resources:
+          requests:
+            storage: 3Gi
