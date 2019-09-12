@@ -52,9 +52,63 @@ There are two important prerequisites before we begin the deployment of Couchbas
 
 1. You have installed _kubectl_ & _AWS CLI_ on your local machine as described in the [guide](./cb-operator-guide/guides/prerequisite-tools.md).
 
-2. You have AWS account and have setup Amazon EKS cluster as per the [EKS Instruction Guide](./cb-operator-guide/guides/eks-setup.md).
+2. You have installed and configured ```eksctl``` as per the [Getting Started with eksctl](https://docs.aws.amazon.com/eks/latest/userguide/getting-started-eksctl.html) guide.
 
-In the labs below we will be using us-east-1 as the region and us-east-1a/1b/1c as three availability-zones but you can deploy to any region/zones by making minor changes to YAML files in the examples below.
+3. Next we will use single command to install EKS Cluster using ```eksctl``` command.
+
+The specifications of the cluster are:
+* --name: xyzEKS (optional)
+* --node-type: m5.xlarge (or better)
+* --nodes 3 and max upto 6
+
+```
+$ eksctl create cluster \
+--name xyzEKS \
+--version 1.14 \
+--region us-east-1 \
+--zones us-east-1a,us-east-1b,us-east-1c \
+--nodegroup-name standard-workers \
+--node-type m5.xlarge \
+--nodes 3 \
+--nodes-min 3 \
+--nodes-max 6 \
+--node-ami auto
+
+[ℹ]  using region us-east-1
+[ℹ]  setting availability zones to [us-east-1c us-east-1b]
+[ℹ]  subnets for us-east-1a - public:192.168.0.0/19 private:192.168.96.0/19
+[ℹ]  subnets for us-east-1b - public:192.168.32.0/19 private:192.168.128.0/19
+[ℹ]  subnets for us-east-1c - public:192.168.64.0/19 private:192.168.160.0/19
+[ℹ]  nodegroup "standard-workers" will use "ami-08739803f18dcc019" [AmazonLinux2/1.14]
+[ℹ]  using Kubernetes version 1.14
+[ℹ]  creating EKS cluster "xyzEKS" in "us-east-1" region
+[ℹ]  will create 2 separate CloudFormation stacks for cluster itself and the initial nodegroup
+[ℹ]  if you encounter any issues, check CloudFormation console or try 'eksctl utils describe-stacks --region=us-east-1 --name=xyzEKS'
+[ℹ]  CloudWatch logging will not be enabled for cluster "xyzEKS" in "us-east-1"
+[ℹ]  you can enable it with 'eksctl utils update-cluster-logging --region=us-east-1 --name=xyzEKS'
+[ℹ]  2 sequential tasks: { create cluster control plane "xyzEKS", create nodegroup "standard-workers" }
+[ℹ]  building cluster stack "eksctl-xyzEKS-cluster"
+[ℹ]  deploying stack "eksctl-xyzEKS-cluster"
+[ℹ]  deploying stack "eksctl-xyzEKS-nodegroup-standard-workers"
+[✔]  all EKS cluster resource for "xyzEKS" had been created
+[✔]  saved kubeconfig as "/Users/first.last/.kube/config"
+[ℹ]  nodegroup "standard-workers" has 0 node(s)
+[ℹ]  waiting for at least 3 node(s) to become ready in "standard-workers"
+[ℹ]  nodegroup "standard-workers" has 3 node(s)
+[ℹ]  node "ip-192-168-13-57.ec2.internal" is ready
+[ℹ]  node "ip-192-168-46-117.ec2.internal" is ready
+[ℹ]  node "ip-192-168-76-24.ec2.internal" is ready
+[✔]  EKS cluster "xyzEKS" in "us-east-1" region is ready
+```
+
+To learn more about the available arguments run:
+
+```
+$ eksctl create cluster --help
+```
+
+
+In the labs below we will be using us-east-1 as the region and three  availability-zones but you can deploy to any region/zones by simply changing ```--region``` and ```--zones``` in the above ```eksctl``` command.
 
 
 # 2. Deploy Couchbase Autonomous Operator
@@ -66,9 +120,9 @@ Before we begin with the setup of Couchbase Operator, run ‘kubectl get nodes�
 $ kubectl get nodes
 
 NAME                              STATUS    ROLES     AGE       VERSION
-ip-192-168-106-132.ec2.internal   Ready     <none>    110m      v1.11.9
-ip-192-168-153-241.ec2.internal   Ready     <none>    110m      v1.11.9
-ip-192-168-218-112.ec2.internal   Ready     <none>    110m      v1.11.9
+ip-192-168-13-57.ec2.internal    Ready     <none>    73m       v1.14.6-eks-5047ed
+ip-192-168-46-117.ec2.internal   Ready     <none>    73m       v1.14.6-eks-5047ed
+ip-192-168-76-24.ec2.internal    Ready     <none>    73m       v1.14.6-eks-5047ed
 ```
 
 After we have tested that we can connect to Kubernetes control plane running on Amazon EKS cluster from our local machine, we can now begin with the steps required to deploy Couchbase Autonomous Operator, which is the glue technology enabling Couchbase Server cluster to be managed by Kubernetes.
@@ -532,6 +586,21 @@ couchbase-operator-admission-6bf9bf8848-zdc7x   1/1       Running   0          9
 couchbase-operator-f6f7b6f75-pzb9m              1/1       Running   0          8m17s
 ```
 
+To view which pod is running on which node you can run:
+
+```
+$ kubectl get pod -o=custom-columns=NODE:.spec.nodeName,NAME:.metadata.name -n emart
+
+NODE                             NAME
+ip-192-168-13-57.ec2.internal    ckdemo-0000
+ip-192-168-46-117.ec2.internal   ckdemo-0001
+ip-192-168-76-24.ec2.internal    ckdemo-0002
+ip-192-168-46-117.ec2.internal   ckdemo-0003
+ip-192-168-76-24.ec2.internal    ckdemo-0004
+ip-192-168-13-57.ec2.internal    couchbase-operator-7654d844cb-d98w7
+ip-192-168-46-117.ec2.internal   couchbase-operator-admission-7ff868f54c-jh66q
+
+```
 If for any reason there is an exception, then you can find the details of exception from the couchbase-operator log file. To display the last 20 lines of the log, copy the name of your operator pod and run below command by replacing the operator name with the name in your environment.
 
 ```
@@ -580,11 +649,12 @@ ckdemo-0004-exposed-ports      LoadBalancer   10.100.162.33    <pending>     180
 ckdemo-srv                     ClusterIP      None             <none>        11210/TCP,11207/TCP               6m
 ckdemo-ui                      NodePort       10.100.111.34    <none>        8091:31106/TCP,18091:30156/TCP    6m
 couchbase-operator-admission   ClusterIP      10.100.70.83     <none>        443/TCP                           23h
-ckdemo-0000-exposed-ports      LoadBalancer   10.100.218.99    a3e1e07e1c9bb11e988541276313ac26-929659888.us-east-1.elb.amazonaws.com    18091:31325/TCP,11207:31716/TCP   5m6s
-ckdemo-0001-exposed-ports      LoadBalancer   10.100.67.128    a3e302ed5c9bb11e988541276313ac26-1624506791.us-east-1.elb.amazonaws.com   18091:31463/TCP,11207:30847/TCP   5m5s
-ckdemo-0002-exposed-ports      LoadBalancer   10.100.107.146   a3e0f0732c9bb11e988541276313ac26-1179001987.us-east-1.elb.amazonaws.com   18091:32242/TCP,11207:30585/TCP   5m6s
-ckdemo-0003-exposed-ports      LoadBalancer   10.100.202.204   a3e14de9cc9bb11e988541276313ac26-1849814018.us-east-1.elb.amazonaws.com   18091:32766/TCP,18092:32672/TCP   5m6s
-ckdemo-0004-exposed-ports      LoadBalancer   10.100.162.33    a3e198391c9bb11e988541276313ac26-11092324.us-east-1.elb.amazonaws.com     18091:30420/TCP,18092:30063/TCP   5m6s
+ckdemo-0000-exposed-ports      LoadBalancer   10.100.89.138    a4b2d970bd57e11e9b5a312280bcc79e-370364291.us-east-1.elb.amazonaws.com    18091:32447/TCP,11207:32463/TCP                   8m33s
+ckdemo-0001-exposed-ports      LoadBalancer   10.100.38.149    a4b42a873d57e11e9b5a312280bcc79e-623488154.us-east-1.elb.amazonaws.com    18091:30067/TCP,11207:32141/TCP                   8m33s
+ckdemo-0002-exposed-ports      LoadBalancer   10.100.189.63    a4b1de878d57e11e9b5a312280bcc79e-1553729680.us-east-1.elb.amazonaws.com   18091:31875/TCP,11207:31995/TCP                   8m33s
+ckdemo-0003-exposed-ports      LoadBalancer   10.100.124.204   a4b244c85d57e11e9b5a312280bcc79e-1997510702.us-east-1.elb.amazonaws.com   18091:32529/TCP,18092:30013/TCP,18093:32722/TCP   8m33s
+ckdemo-0004-exposed-ports      LoadBalancer   10.100.93.123    a4b28f156d57e11e9b5a312280bcc79e-200019538.us-east-1.elb.amazonaws.com    18091:30243/TCP,18092:31285/TCP,18093:30002/TCP   8m33s
+
 ```
 
 
@@ -637,8 +707,9 @@ Java HotSpot(TM) 64-Bit Server VM (build 25.144-b01, mixed mode)
 We are ready to write a few thousand documents into our _default_ bucket by using the jar file we downloaded before. Here is the command to use:
 
 ```
-$ java -jar cbloadgen.jar -t 10 -d 1000 -h localhost -u Administrator \
--p password -b default -e true -ks ~/.keystore -kp password
+$ java -jar cbloadgen.jar -t 10 -d 1000 \
+-h a4b2d970bd57e11e9b5a312280bcc79e-370364291.us-east-1.elb.amazonaws.com \
+-u Administrator -p password -b default -e true -ks ~/.keystore -kp password
 
 Connection created.
 ...............
@@ -874,6 +945,25 @@ ckdemo-0009-exposed-ports      LoadBalancer   10.100.156.109   ad2fcf7c1c9cd11e9
 ```
 
 Refreshing external-ip is not a desired behavior from Couchbase client perspective and in later section we will describe how you can add ```externalDNS``` in front of your EKS cluster so that there is no impact of IP being changed as client code will use Fully Qualified Domain Names (FQDN) instead.
+
+#### 5.3.3. Cleanup
+
+After lab is done delete EKS cluster and every other resource deployed during the setup.
+
+```
+$ eksctl delete cluster --name=xyzEKS
+
+[ℹ]  using region us-east-1
+[ℹ]  deleting EKS cluster "xyzEKS"
+[✔]  kubeconfig has been updated
+[ℹ]  cleaning up LoadBalancer services
+[ℹ]  2 sequential tasks: { delete nodegroup "standard-workers", delete cluster control plane "EKS" [async] }
+[ℹ]  will delete stack "eksctl-xyzEKS-nodegroup-standard-workers"
+[ℹ]  waiting for stack "eksctl-xyzEKS-nodegroup-standard-workers" to get deleted
+[ℹ]  will delete stack "eksctl-xyzEKS-cluster"
+[✔]  all cluster resources were deleted
+
+```
 
 # 6. Conclusion
 

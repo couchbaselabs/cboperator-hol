@@ -4,7 +4,7 @@ metadata:
   name: ckdemo
 spec:
   baseImage: couchbase/server
-  version: enterprise-5.5.4
+  version: enterprise-5.5.5
   tls:
     static:
       member:
@@ -16,6 +16,7 @@ spec:
     - data
   exposedFeatures:
     - xdcr
+    - client
   exposedFeatureServiceType: LoadBalancer
   dns:
     domain: sewestus.com

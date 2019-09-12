@@ -16,6 +16,7 @@ spec:
     - data
   exposedFeatures:
     - xdcr
+    - client
   exposedFeatureServiceType: LoadBalancer
   dns:
     domain: sewestus.com
