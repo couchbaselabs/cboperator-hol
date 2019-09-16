@@ -52,7 +52,7 @@
 7. [**Cleanup**](#7.)
 8. [**Conclusion**](#8.)
 
-
+<div style="page-break-after: always;"></div>
 	
 # Scope
 
@@ -67,6 +67,8 @@ There are three important prerequisites before we begin the deployment of Couchb
 
 In the labs below we will be using europe-west1 as the region and europe-west1-b/c/d as three availability-zones but you can deploy to any region/zones by making minor changes to YAML files in the examples below.
 
+
+<div style="page-break-after: always;"></div>
 
 # 2. <a name="2."></a>Deploy Couchbase Autonomous Operator
 
@@ -249,6 +251,8 @@ time="2019-08-08T19:18:50Z" level=info msg="I'm the leader, attempt to start the
 time="2019-08-08T19:18:50Z" level=info msg="Creating the couchbase-operator controller" module=main
 time="2019-08-08T19:18:50Z" level=info msg="Event(v1.ObjectReference{Kind:\"Endpoints\", Namespace:\"emart\", Name:\"couchbase-operator\", UID:\"5a5fb656-ba11-11e9-98c4-42010a840059\", APIVersion:\"v1\", ResourceVersion:\"20334\", FieldPath:\"\"}): type: 'Normal' reason: 'LeaderElection' couchbase-operator-f6f7b6f75-wdbtd became leader" module=event_recorder
 ```
+
+<div style="page-break-after: always;"></div>
 
 # 3. <a name="3."></a>Deploy Couchbase cluster using persistent volumes, availability zones and TLS
 
@@ -529,6 +533,7 @@ Figure 2: Couchbase cluster UI with 5 nodes using MDS and server groups.
 
 
 
+<div style="page-break-after: always;"></div>
 
 # 4. <a name="4."></a>Operations
 	
@@ -848,6 +853,7 @@ spec:
 ```      
 
 
+<div style="page-break-after: always;"></div>
 
 # 5. <a name="5."></a>**Running sample application using SDK** 
 		
@@ -932,6 +938,7 @@ Upserted document should looks like this
 
 ![upserted doc](https://github.com/couchbaselabs/cboperator-hol/blob/master/opensrc-k8s/cmd-line/assets/5-upserted-doc.png)
 
+<div style="page-break-after: always;"></div>
 
 # 6. <a name="6."></a>Troubleshooting
 
@@ -986,6 +993,7 @@ volumeBindingMode: WaitForFirstConsumer
 **Note:**  remove/alter the `default` persitent volume to include `volumeBindingMode: WaitForFirstConsumer`
 
 
+<div style="page-break-after: always;"></div>
 
 # 7. <a name="7."></a>Cleanup
 
@@ -1007,6 +1015,7 @@ kubectl delete -f crd.yaml
 ```
 
 
+<div style="page-break-after: always;"></div>
 
 # 8. <a name="8."></a>Conclusion
 
