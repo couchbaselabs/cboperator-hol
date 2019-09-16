@@ -1,57 +1,56 @@
 # Content
 
-1. **Prerequisites**
-2. **Deploy Couchbase Autonomous Operator** 
+1. [**Prerequisites**](#prerequisites)
+2. [**Deploy Couchbase Autonomous Operator**](#2.) 
 
-	2.1. **Download Operator package**
+	2.1. [**Download Operator package**](#2.1.)
 	
-	2.2. **Create a namespace**
+	2.2. [**Create a namespace**](#2.2.)
 	
-	2.3. **Install CRD**
+	2.3. [**Install CRD**](#2.3.)
 	
-	2.4. **Install Admission Controller**
+	2.4. [**Install Admission Controller**](#2.4.)
 	
-	2.5. **Create a Operator Role**
+	2.5. [**Create a Operator Role**](#2.5.)
 	
-	2.6. **Create a Service Account**
+	2.6. [**Create a Service Account**](#2.6.)
 	
-	2.7. **Deploy Couchbase Operator**
+	2.7. [**Deploy Couchbase Operator**](#2.7.)
 
-3. **Deploy Couchbase cluster using persistent volumes, server groups and TLS**
+3. [**Deploy Couchbase cluster using persistent volumes, server groups and TLS**](#3.)
 
-	3.1. **Create Secret for Couchbase Admin Console**
+	3.1. [**Create Secret for Couchbase Admin Console**](#3.1.)
 	
-	3.2. **Create Google storage class for the GKS cluster**
+	3.2. [**Create Google storage class for the GKS cluster**](#3.2.)
 	
-	3.3. **Add Storage Class to Persistent Volume Claim Template**
+	3.3. [**Add Storage Class to Persistent Volume Claim Template**](#3.3.)
 
-	3.4. **Add TLS Certificate to non-default namespace 'emart'**
+	3.4. [**Add TLS Certificate to non-default namespace 'emart'**](#3.4.)
 
-	3.5. **Serving Groups**
+	3.5. [**Serving Groups**](#3.5.)
 
-	3.6. **Deploy Couchbase Cluster**
+	3.6. [**Deploy Couchbase Cluster**](#3.6.)
 	
-4. **Operations**
+4. [**Operations**](#4.)
 
-	4.1. **Scaling - On demand scaling - up & down**
+	4.1. [**Scaling - On demand scaling - up & down**](#4.1.)
 
-	4.2. **Self-recovery**
+	4.2. [**Self-recovery**](#4.2.)
 
-	4.3. **Couchbase automated upgrade**
+	4.3. [**Couchbase automated upgrade**](#4.3.)
 
-	4.4. **Backing up and Restoring**
+	4.4. [**Backing up and Restoring**](#4.4.)
 	
 	
-5. **Running sample application using SDK** 
+5. [**Running sample application using SDK** ](#5.)
 		
-	5.1. **Create user namespace for Couchbase Client - SDK**
+	5.1. [**Create user namespace for Couchbase Client - SDK**](#5.1.)
 	
-	5.2. **Deploy Couchbase Client - SDK App**
+	5.2. [**Deploy Couchbase Client - SDK App**](#5.2.)
 
-6. **Troubleshooting**
-7. **Cleanup**
-
-8. **Conclusion**
+6. [**Troubleshooting**](#6.)
+7. [**Cleanup**](#7.)
+8. [**Conclusion**](#8.)
 
 
 	
@@ -59,7 +58,7 @@
 
 ![cluster image](assets/gke-cluster.png)
 
-# 1. Prerequisites
+# 1. <a name="prerequisites"></a> Prerequisites
 
 There are three important prerequisites before we begin the deployment of Couchbase Autonomous Operator on GKS:
  
@@ -69,7 +68,7 @@ There are three important prerequisites before we begin the deployment of Couchb
 In the labs below we will be using europe-west1 as the region and europe-west1-b/c/d as three availability-zones but you can deploy to any region/zones by making minor changes to YAML files in the examples below.
 
 
-# 2. Deploy Couchbase Autonomous Operator
+# 2. <a name="2."></a>Deploy Couchbase Autonomous Operator
 
 Before we begin with the setup of Couchbase Operator, run ‘kubectl get nodes’ command from the local machine to confirm GKS cluster is up and running.
 
@@ -88,7 +87,7 @@ gke-my-cluster-europe-we-default-pool-b1d1dea7-t53z   Ready    <none>   100s   v
 
 After we have tested that we can connect to Kubernetes control plane running on Google Cloud GKS cluster from our local machine, we can now begin with the steps required to deploy Couchbase Autonomous Operator, which is the glue technology enabling Couchbase Server cluster to be managed by Kubernetes.
 
-### 2.1. Download Operator package
+### 2.1. <a name="2.1."></a> Download Operator package
 
 Let’s first begin by downloading the latest [Couchbase Autonomous Operator](https://www.couchbase.com/downloads?family=kubernetes) and unzip onto the local machine. Change directory to the operator folder so we can find YAML files we need to deploy Couchbase operator:
 
@@ -104,7 +103,7 @@ admission.yaml			crd.yaml			operator-service-account.yaml
 bin				operator-deployment.yaml	pillowfight-data-loader.yaml
 ```
 
-### 2.2. Create a namespace
+### 2.2. <a name="2.2."></a>Create a namespace
 
 Create a namespace that will allow cluster resources to be nicely separated between multiple users. To do that we will use a unique namespace called **emart** for our deployment and later will use this namespace to deploy Couchbase Cluster.
 
@@ -133,7 +132,7 @@ emart         Active   34s
 
 From now onwards we will use emart as the namespace for all resource provisioning.
 
-### 2.3. Install CRD
+### 2.3. <a name="2.3."></a>Install CRD
 
 The first step in installing the Operator is to install the custom resource definition (CRD) that describes the CouchbaseCluster resource type. This can be achieved with the following command:
 
@@ -141,7 +140,7 @@ The first step in installing the Operator is to install the custom resource defi
 kubectl create -f crd.yaml
 ```
 
-### 2.4. Install Admission Controller
+### 2.4. <a name="2.4."></a>Install Admission Controller
 
 The primary purpose of the admission controller is to validate Couchbase cluster configuration changes before the Operator acts on them, thus protecting your Couchbase deployment (and the Operator) from any accidental damage that might arise from an invalid configuration.
 
@@ -149,7 +148,7 @@ The primary purpose of the admission controller is to validate Couchbase cluster
 kubectl create -f admission.yaml 
 ```
 
-### 2.5. Create a Operator Role
+### 2.5. <a name="2.5."></a>Create a Operator Role
 
 Next, we will create a [cluster role](https://kubernetes.io/docs/reference/access-authn-authz/rbac/#api-overview) that allows the Operator to access the resources that it needs to run. Since the Operator will manage many different [namespaces](https://kubernetes.io/docs/concepts/overview/working-with-objects/namespaces/), it is best to create a cluster role first because you can assign that role to a [service account](https://kubernetes.io/docs/reference/access-authn-authz/rbac/#service-account-permissions) in any namespace.
 
@@ -161,7 +160,7 @@ $ kubectl create -f operator-role.yaml --namespace emart
 
 This cluster role only needs to be created once.
 
-### 2.6. Create a Service Account
+### 2.6. <a name="2.6."></a>Create a Service Account
 
 After the cluster role is created, you need to create a service account in the namespace where you are installing the Operator. To create the service account:
 
@@ -188,7 +187,7 @@ Kubectl get rolebindings -n emart
 Kubectl get sa -n emart
 ```
 
-### 2.7. Deploy Couchbase Operator
+### 2.7. <a name="2.7."></a>Deploy Couchbase Operator
 
 We now have all the roles and privileges for our operator to be deployed. Deploying the operator is as simple as running the operator.yaml file from the Couchbase Autonomous Operator directory.
 
@@ -251,7 +250,7 @@ time="2019-08-08T19:18:50Z" level=info msg="Creating the couchbase-operator cont
 time="2019-08-08T19:18:50Z" level=info msg="Event(v1.ObjectReference{Kind:\"Endpoints\", Namespace:\"emart\", Name:\"couchbase-operator\", UID:\"5a5fb656-ba11-11e9-98c4-42010a840059\", APIVersion:\"v1\", ResourceVersion:\"20334\", FieldPath:\"\"}): type: 'Normal' reason: 'LeaderElection' couchbase-operator-f6f7b6f75-wdbtd became leader" module=event_recorder
 ```
 
-# 3. Deploy Couchbase cluster using persistent volumes, availability zones and TLS
+# 3. <a name="3."></a>Deploy Couchbase cluster using persistent volumes, availability zones and TLS
 
 In a production environment where performance and SLA of the system matters most, we should always plan on deploying Couchbase cluster using persistent volumes because it helps in:
 
@@ -264,7 +263,7 @@ In a production environment where performance and SLA of the system matters most
 
 In this next section we will see how you can define storage classes in different availability zone and build persistent volume claim template, which will be used in [couchbase-cluster-with-pv.yaml](files/couchbase-cluster-with-pv.yaml) file.
 
-## 3.1. Create Secret for Couchbase Admin Console
+## 3.1. <a name="3.1."></a>Create Secret for Couchbase Admin Console
 
 First thing we need to do is create a secret credential which will be used by the administrative web console during login. For convenience, a sample secret is provided in the Operator package. When you push it to your Kubernetes cluster, the secret sets the username to Administrator and the password to password.
 
@@ -278,7 +277,7 @@ Output:
 Secret/cb-example-auth created
 ```
 
-## 3.2. Create Google storage class for the GKS cluster
+## 3.2. <a name="3.2."></a>Create Google storage class for the GKS cluster
 
 Now in order to use PersistentVolume for Couchbase services (data, index, search, etc.), we need to create Storage Classes (SC) first in each of the Availability Zones (AZ). Let’s begin by checking what storage classes exist in our environment.
 
@@ -353,7 +352,7 @@ slow                 kubernetes.io/gce-pd   59s
 standard (default)   kubernetes.io/gce-pd   2d19h
 ```
 
-## 3.3. Add Storage Class to Persistent Volume Claim Template:
+## 3.3. <a name="3.3."></a>Add Storage Class to Persistent Volume Claim Template:
 
 Now that we have created SCs in each of the three AZs, we can use them to create dynamic storage volumes and mount them of each of the Couchbase services that requires persistent data. There is one last thing to do before we can use persistent volumes and that is define Persistent Volume Claim Template in our couchbase-cluster.yaml file (which can be found from the operator folder).
 
@@ -428,7 +427,7 @@ spec:
 Notice that we have created three separate data server groups (europe-west1-b/-c/-d), each located in its own AZ, using persistent volume claim templates from that AZ. Now using the same concept we will add index, and query services and allocate them in separate server groups so they can scale independently of data nodes.
 
 
-## 3.4. Add TLS Certificate to non-default namespace 'emart'
+## 3.4. <a name="3.4."></a>Add TLS Certificate to non-default namespace 'emart'
 
 Create secret for Couchbase Operator and servers with a given certificate. See [how to create a custom](guides/tls-certificate.md) certificate section if you don't have one. 
   
@@ -441,13 +440,13 @@ kubectl create secret generic couchbase-operator-tls --from-file pki/ca.crt --na
 ```
 
 
-## 3.5. Serving Groups
+## 3.5. <a name="3.5."></a>Serving Groups
 
 Setting up server groups is also straightforward, which will be discussed in the following sections when we deploy the couchbase cluster yaml file.
 
 
 
-## 3.6. Deploy Couchbase Cluster
+## 3.6. <a name="3.6."></a>Deploy Couchbase Cluster
 
 The full spec for deploying Couchbase cluster across 3 different zones using persistent volumes can be seen in the [couchbase-cluster-with-pv-tls-serverGroups.yaml](files/couchbase-cluster-with-pv-tls-serverGroups.yaml) file. This file along with other sample yaml files used in this article can be downloaded from this git repo.
 
@@ -531,7 +530,7 @@ Figure 2: Couchbase cluster UI with 5 nodes using MDS and server groups.
 
 
 
-# 4. Operations
+# 4. <a name="4."></a>Operations
 	
 	4.1. Scaling - On demand scaling - up & down
 
@@ -542,7 +541,7 @@ Figure 2: Couchbase cluster UI with 5 nodes using MDS and server groups.
 	4.4. Create backup
 	
 
-## 4.1. Scaling - On demand scaling - up & down
+## 4.1. <a name="4.1."></a>Scaling - On demand scaling - up & down
  
 If you have ever scaled-out or scaled-in a database cluster you would know that it is a non-trivial process as it entails lot of manually triggered steps which are not only time consuming but also error prone.
 
@@ -626,7 +625,7 @@ cb-gke-emart-tls-0005                     0/1       Init:0/1   0          11s
 
 
 
-## 4.2. High Availability (HA) & Self-recovery
+## 4.2. <a name="4.2."></a>High Availability (HA) & Self-recovery
 
 One of the best feature of Kubernetes in general is that it provides Auto-Healing capability to the services that are managed by it. With Couchbase Autonomous Operator we leverage the same Auto-Healing capability of K8 for Couchbase Cluster.
 
@@ -658,7 +657,7 @@ After Couchbase Autonomous Operator detects the failure it triggers the healing 
 Figure 4: Data node with same name and persistent volume will be restored automatically.
 
 
-## 4.3. Couchbase automated upgrade 
+## 4.3. <a name="4.3."></a>Couchbase automated upgrade 
 
 Any software in service goes through continuous improvement and there is definitely going to be the moments when you would like to upgrade Couchbase Autonomous Operator too because of some new feature or the patch which is critical for your business.
 
@@ -666,7 +665,7 @@ Upgrading a distributed cluster like Couchbase requires careful orchestration of
 
 Let's take a look at how you can upgrade the system in an online fashion.
 
-### 4.3.1. Preparing for Upgrade
+### 4.3.1. <a name="4.3.1."></a>Preparing for Upgrade
 Before beginning an upgrade to your Kubernetes cluster, review the following considerations and prerequisites:
 
 - As an eviction deletes a pod, ensure that the Couchbase cluster is scaled correctly so that it can handle the increased load of having a pod down while a new pod is balanced into the cluster.
@@ -675,7 +674,7 @@ Before beginning an upgrade to your Kubernetes cluster, review the following con
 
 - Ensure that there is capacity in your Kubernetes cluster to handle the scheduling of replacement Couchbase pods. For example, if a Couchbase cluster were running on Kubernetes nodes marked exclusively for use by Couchbase, and anti-affinity were enabled as per the deployment [best practices](https://docs.couchbase.com/operator/current/best-practices.html), the Kubernetes cluster would require at least one other node capable of scheduling and running your Couchbase workload.
 
-### 4.3.2. Perform Automatic Upgrade
+### 4.3.2. <a name="4.3.2."></a>Perform Automatic Upgrade
 To prevent downtime or a data loss scenario, the Operator provides controls for how automated Kubernetes upgrades proceed.
 
 A PodDisruptionBudget is created for each CouchbaseCluster resource created. The PodDisruptionBudget specifies that at least the cluster size minus one node (N-1) be ready at any time. This constraint allows, at most, one node to be evicted at a time. As a result, it’s recommended that to support an automatic Kubernetes upgrade, the cluster be deployed with anti-affinity enabled to guarantee only a single eviction at a time.
@@ -716,14 +715,14 @@ Figure 6: Couchbase Cluster getting upgraded one pod at a time in and online fas
 Just wait for some time and cluster will upgraded one pod at a time in a rolling fashion.
 
 
-## 4.4. Backing up and Restoring a Couchbase Deployment
+## 4.4. <a name="4.4."></a>Backing up and Restoring a Couchbase Deployment
 
 The Couchbase Autonomous Operator automatically repairs and rebalances Couchbase clusters to maintain high availability. It is considered best practice to regularly backup your data, and also test restoring it works as expected before disaster recovery is required.
 
 This functionality is not provided by the Operator and left to the cluster administrator to define backup policies and test data restoration. This section describes some common patterns that may be employed to perform the required functions.
 
 
-### 4.4.1. Backing Up
+### 4.4.1. <a name="4.4.1."></a>Backing Up
 
 The Kubernetes resource definitions below illustrate a typical arrangement for backup that saves the state of the entire cluster.
 
@@ -822,7 +821,7 @@ spec:
 A merge job should be run periodically to compact full and incremental backups into a single full backup. This step will reduce disk utilization.
 
 
-### 4.4.2. Restoring
+### 4.4.2. <a name="4.4.2."></a>Restoring
 
 Much like a backup we can restore data to a new Couchbase cluster with a Kubernetes Job.
 
@@ -850,16 +849,16 @@ spec:
 
 
 
-# 5. **Running sample application using SDK** 
+# 5. <a name="5."></a>**Running sample application using SDK** 
 		
-## 5.1. **Create user namespace for Couchbase Client - SDK**
+## 5.1. <a name="5.1."></a>**Create user namespace for Couchbase Client - SDK**
 
 ```
 $ kubectl create namespace apps
 namespace/apps created
 ```
 
-## 5.2. **Deploy Couchbase Client - SDK App**
+## 5.2. <a name="5.2."></a>**Deploy Couchbase Client - SDK App**
 
 Create the application file [app_pod.yaml](files/app_pod.yaml)
 
@@ -934,10 +933,10 @@ Upserted document should looks like this
 ![upserted doc](https://github.com/couchbaselabs/cboperator-hol/blob/master/opensrc-k8s/cmd-line/assets/5-upserted-doc.png)
 
 
-# 6. Troubleshooting
+# 6. <a name="6."></a>Troubleshooting
 
 
-## 6.1. Certificate cannot be verified
+## 6.1. <a name="6.1."></a>Certificate cannot be verified
 
 Issue:
 
@@ -960,7 +959,7 @@ example with cluster `cb-gke-emart` in namespace `emart`:
 $ ./easyrsa --subject-alt-name="DNS:*.cb-gke-emart-tls.emart.svc" build-server-full couchbase-server nopass
 ```
 
-## 6.2. Persistent Volume 
+## 6.2. <a name="6.2."></a>Persistent Volume 
 
 
 ```
@@ -988,7 +987,7 @@ volumeBindingMode: WaitForFirstConsumer
 
 
 
-# 7. Cleanup
+# 7. <a name="7."></a>Cleanup
 
 Perform these steps below to un-config all the k8s assets created.
 
@@ -1009,7 +1008,7 @@ kubectl delete -f crd.yaml
 
 
 
-# 8. Conclusion
+# 8. <a name="8."></a>Conclusion
 
 Couchbase Autonomous Operator makes management and orchestration of Couchbase Cluster seamless on the Kubernetes platform. What makes this operator unique is its ability to easily use storage classes offered by different cloud vendors (AWS, Azure, GCP, RedHat OpenShift, etc) to create persistent volumes, which is then used by the Couchbase database cluster to persistently store the data. In the event of pod or container failure, Kubernetes re-instantiate a new pod/container automatically and simply remounts the persistent volumes back, making the recovery fast. It also helps maintain the SLA of the system during infrastructure failure recovery because only delta recovery is needed as opposed to full-recovery, if persistent volumes are not being used.
 

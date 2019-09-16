@@ -28,6 +28,10 @@ Username: kubeadmin
 Password: <YOUR CLUSTER PASSWORD>
 ```
 
+
+---
+
+
 ## Couchbase Autonomous Operator Deployment
 
 The next set of steps will guide you through deploying the Operator.
