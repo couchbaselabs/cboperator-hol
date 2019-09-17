@@ -341,17 +341,17 @@ Previously a values file [couchbase-cluster-minikube-helm.yaml](files/couchbase-
 	**Output:**
 	
 	```
-	time="2019-09-17T01:37:15Z" level=info msg="Cluster status: balanced" cluster-name=cb-helm-minikube module=cluster
-time="2019-09-17T01:37:15Z" level=info msg="Node status:" cluster-name=cb-helm-minikube module=cluster
-time="2019-09-17T01:37:15Z" level=info msg="┌───────────────────────┬──────────────────┬──────────────┬────────────────┐" cluster-name=cb-helm-minikube module=cluster
-time="2019-09-17T01:37:15Z" level=info msg="│ Server                │ Version          │ Class        │ Status         │" cluster-name=cb-helm-minikube module=cluster
-time="2019-09-17T01:37:15Z" level=info msg="├───────────────────────┼──────────────────┼──────────────┼────────────────┤" cluster-name=cb-helm-minikube module=cluster
-time="2019-09-17T01:37:15Z" level=info msg="│ cb-helm-minikube-0000 │ enterprise-6.0.1 │ all_services │ managed+active │" cluster-name=cb-helm-minikube module=cluster
-time="2019-09-17T01:37:15Z" level=info msg="│ cb-helm-minikube-0001 │ enterprise-6.0.1 │ all_services │ managed+active │" cluster-name=cb-helm-minikube module=cluster
-time="2019-09-17T01:37:15Z" level=info msg="└───────────────────────┴──────────────────┴──────────────┴────────────────┘" cluster-name=cb-helm-minikube module=cluster
-time="2019-09-17T01:37:15Z" level=info cluster-name=cb-helm-minikube module=cluster
-time="2019-09-17T01:37:20Z" level=info msg="reconcile finished" cluster-name=cb-helm-minikube module=cluster
-```
+	time="2019-09-17T01:37:15Z" level=info msg="Cluster status: balanced" cluster-name=cb-helm-	minikube module=cluster
+	time="2019-09-17T01:37:15Z" level=info msg="Node status:" cluster-name=cb-helm-minikube 	module=cluster
+	time="2019-09-17T01:37:15Z" level=info 	msg="┌───────────────────────┬──────────────────┬──────────────┬────────────────┐" cluster-	name=cb-helm-minikube module=cluster
+	time="2019-09-17T01:37:15Z" level=info msg="│ Server                │ Version          │ Class        	│ Status         │" cluster-name=cb-helm-minikube module=cluster
+	time="2019-09-17T01:37:15Z" level=info 	msg="├───────────────────────┼──────────────────┼──────────────┼────────────────┤" cluster-	name=cb-helm-minikube module=cluster
+	time="2019-09-17T01:37:15Z" level=info msg="│ cb-helm-minikube-0000 │ enterprise-6.0.1 │ 	all_services │ managed+active │" cluster-name=cb-helm-minikube module=cluster
+	time="2019-09-17T01:37:15Z" level=info msg="│ cb-helm-minikube-0001 │ enterprise-6.0.1 │ 	all_services │ managed+active │" cluster-name=cb-helm-minikube module=cluster
+	time="2019-09-17T01:37:15Z" level=info 	msg="└───────────────────────┴──────────────────┴──────────────┴────────────────┘" cluster-	name=cb-helm-minikube module=cluster
+	time="2019-09-17T01:37:15Z" level=info cluster-name=cb-helm-minikube module=cluster
+	time="2019-09-17T01:37:20Z" level=info msg="reconcile finished" cluster-name=cb-helm-minikube 	module=cluster
+	```
 
 - Check the Couchbase Web Console to get more details on the server list, by forwarding the ports as before:
 
