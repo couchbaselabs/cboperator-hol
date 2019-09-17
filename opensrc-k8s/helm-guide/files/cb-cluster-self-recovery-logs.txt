@@ -1,0 +1,61 @@
+time="2019-09-17T00:58:06Z" level=info cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T00:58:06Z" level=warning msg="cb-helm-minikube-0002 is unrecoverable: No volume mounts defined" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T00:58:06Z" level=warning msg="Waiting for auto-failover of down node `cb-helm-minikube-0002`" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T00:58:06Z" level=error msg="failed to reconcile: unable to reconcile cluster because some nodes are down" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T00:58:20Z" level=info msg="server config all_services: cb-helm-minikube-0000,cb-helm-minikube-0001" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T00:58:20Z" level=warning msg="unable to poll external addresses for pod cb-helm-minikube-0002" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T00:58:20Z" level=info msg="Cluster status: balanced" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T00:58:20Z" level=info msg="Node status:" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T00:58:20Z" level=info msg="┌───────────────────────┬──────────────────┬──────────────┬────────────────┐" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T00:58:20Z" level=info msg="│ Server                │ Version          │ Class        │ Status         │" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T00:58:20Z" level=info msg="├───────────────────────┼──────────────────┼──────────────┼────────────────┤" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T00:58:20Z" level=info msg="│ cb-helm-minikube-0000 │ enterprise-6.0.1 │ all_services │ managed+active │" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T00:58:20Z" level=info msg="│ cb-helm-minikube-0001 │ enterprise-6.0.1 │ all_services │ managed+active │" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T00:58:20Z" level=info msg="│ cb-helm-minikube-0002 │ enterprise-6.0.1 │ all_services │ managed+down   │" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T00:58:20Z" level=info msg="└───────────────────────┴──────────────────┴──────────────┴────────────────┘" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T00:58:20Z" level=info cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T00:58:20Z" level=warning msg="cb-helm-minikube-0002 is unrecoverable: No volume mounts defined" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T00:58:20Z" level=warning msg="Waiting for auto-failover of down node `cb-helm-minikube-0002`" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T00:58:20Z" level=error msg="failed to reconcile: unable to reconcile cluster because some nodes are down" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T00:58:34Z" level=info msg="server config all_services: cb-helm-minikube-0000,cb-helm-minikube-0001" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T00:58:34Z" level=warning msg="unable to poll external addresses for pod cb-helm-minikube-0002" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T00:58:34Z" level=info msg="Cluster status: unbalanced" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T00:58:34Z" level=info msg="Node status:" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T00:58:34Z" level=info msg="┌───────────────────────┬──────────────────┬──────────────┬────────────────┐" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T00:58:34Z" level=info msg="│ Server                │ Version          │ Class        │ Status         │" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T00:58:34Z" level=info msg="├───────────────────────┼──────────────────┼──────────────┼────────────────┤" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T00:58:34Z" level=info msg="│ cb-helm-minikube-0000 │ enterprise-6.0.1 │ all_services │ managed+active │" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T00:58:34Z" level=info msg="│ cb-helm-minikube-0001 │ enterprise-6.0.1 │ all_services │ managed+active │" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T00:58:34Z" level=info msg="│ cb-helm-minikube-0002 │ enterprise-6.0.1 │ all_services │ managed+failed │" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T00:58:34Z" level=info msg="└───────────────────────┴──────────────────┴──────────────┴────────────────┘" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T00:58:34Z" level=info cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T00:58:36Z" level=info msg="An auto-failover has taken place" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T00:58:36Z" level=warning msg="cb-helm-minikube-0002 is unrecoverable: No volume mounts defined" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T00:58:36Z" level=info msg="planning removal of https://cb-helm-minikube-0002.cb-helm-minikube.default.svc:18091" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T00:58:38Z" level=info msg="Creating a pod (cb-helm-minikube-0003) running Couchbase enterprise-6.0.1" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T00:59:15Z" level=info msg="added member (cb-helm-minikube-0003)" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T00:59:15Z" level=warning msg="unable to poll external addresses for pod cb-helm-minikube-0002" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T00:59:16Z" level=info msg="Rebalance progress: 0.000000" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T00:59:20Z" level=info msg="Rebalance progress: 2.331578" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T00:59:24Z" level=info msg="Rebalance progress: 7.450912" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T00:59:28Z" level=info msg="Rebalance progress: 12.603595" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T00:59:32Z" level=info msg="Rebalance progress: 17.560200" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T00:59:36Z" level=info msg="Rebalance progress: 22.940971" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T00:59:40Z" level=info msg="Rebalance progress: 27.840579" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T00:59:44Z" level=info msg="Rebalance progress: 33.146246" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T00:59:48Z" level=info msg="Rebalance progress: 38.664186" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T00:59:52Z" level=info msg="Rebalance progress: 43.515012" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T00:59:56Z" level=info msg="Rebalance progress: 48.124221" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:00:01Z" level=info msg="deleted pod (cb-helm-minikube-0002)" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:00:01Z" level=info msg="reconcile finished" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:00:10Z" level=info msg="Cluster status: balanced" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:00:10Z" level=info msg="Node status:" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:00:10Z" level=info msg="┌───────────────────────┬──────────────────┬──────────────┬────────────────┐" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:00:10Z" level=info msg="│ Server                │ Version          │ Class        │ Status         │" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:00:10Z" level=info msg="├───────────────────────┼──────────────────┼──────────────┼────────────────┤" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:00:10Z" level=info msg="│ cb-helm-minikube-0000 │ enterprise-6.0.1 │ all_services │ managed+active │" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:00:10Z" level=info msg="│ cb-helm-minikube-0001 │ enterprise-6.0.1 │ all_services │ managed+active │" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:00:10Z" level=info msg="│ cb-helm-minikube-0003 │ enterprise-6.0.1 │ all_services │ managed+active │" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:00:10Z" level=info msg="└───────────────────────┴──────────────────┴──────────────┴────────────────┘" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:00:10Z" level=info cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:00:15Z" level=info msg="reconcile finished" cluster-name=cb-helm-minikube module=cluster

@@ -1,0 +1,243 @@
+time="2019-09-17T01:47:50Z" level=info msg="spec update: Old Spec:" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="{" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="    \"baseImage\": \"couchbase/server\"," cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="    \"version\": \"enterprise-6.0.1\"," cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="    \"tls\": {" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="        \"static\": {" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="            \"member\": {" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="                \"serverSecret\": \"moldy-bat-cb-helm-minikube-server-tls\"" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="            }," cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="            \"operatorSecret\": \"moldy-bat-cb-helm-minikube-operator-tls\"" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="        }" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="    }," cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="    \"cluster\": {" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="        \"clusterName\": \"cb-helm-minikube\"," cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="        \"dataServiceMemoryQuota\": 256," cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="        \"indexServiceMemoryQuota\": 256," cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="        \"searchServiceMemoryQuota\": 256," cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="        \"eventingServiceMemoryQuota\": 256," cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="        \"analyticsServiceMemoryQuota\": 1024," cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="        \"indexStorageSetting\": \"memory_optimized\"," cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="        \"autoFailoverTimeout\": 120," cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="        \"autoFailoverMaxCount\": 3," cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="        \"autoFailoverOnDataDiskIssues\": true," cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="        \"autoFailoverOnDataDiskIssuesTimePeriod\": 120," cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="        \"autoFailoverServerGroup\": false" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="    }," cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="    \"buckets\": [" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="        {" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="            \"name\": \"default\"," cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="            \"type\": \"couchbase\"," cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="            \"memoryQuota\": 128," cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="            \"replicas\": 1," cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="            \"ioPriority\": \"high\"," cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="            \"evictionPolicy\": \"fullEviction\"," cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="            \"conflictResolution\": \"seqno\"," cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="            \"enableFlush\": true," cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="            \"compressionMode\": \"passive\"" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="        }" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="    ]," cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="    \"servers\": [" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="        {" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="            \"size\": 2," cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="            \"name\": \"all_services\"," cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="            \"services\": [" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="                \"data\"," cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="                \"index\"," cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="                \"query\"" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="            ]," cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="            \"pod\": {" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="                \"resources\": {}" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="            }" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="        }" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="    ]," cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="    \"authSecret\": \"moldy-bat-cb-helm-minikube\"," cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="    \"exposeAdminConsole\": true," cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="    \"adminConsoleServices\": [" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="        \"data\"" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="    ]," cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="    \"exposedFeatures\": [" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="        \"xdcr\"" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="    ]," cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="    \"softwareUpdateNotifications\": false," cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="    \"securityContext\": {}," cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="    \"logRetentionTime\": \"604800s\"," cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="    \"logRetentionCount\": 20," cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="    \"exposedFeatureServiceType\": \"NodePort\"," cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="    \"adminConsoleServiceType\": \"NodePort\"" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="}" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="New Spec:" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="{" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="    \"baseImage\": \"couchbase/server\"," cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="    \"version\": \"enterprise-6.0.2\"," cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="    \"tls\": {" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="        \"static\": {" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="            \"member\": {" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="                \"serverSecret\": \"moldy-bat-cb-helm-minikube-server-tls\"" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="            }," cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="            \"operatorSecret\": \"moldy-bat-cb-helm-minikube-operator-tls\"" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="        }" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="    }," cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="    \"cluster\": {" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="        \"clusterName\": \"cb-helm-minikube\"," cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="        \"dataServiceMemoryQuota\": 256," cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="        \"indexServiceMemoryQuota\": 256," cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="        \"searchServiceMemoryQuota\": 256," cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="        \"eventingServiceMemoryQuota\": 256," cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="        \"analyticsServiceMemoryQuota\": 1024," cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="        \"indexStorageSetting\": \"memory_optimized\"," cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="        \"autoFailoverTimeout\": 120," cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="        \"autoFailoverMaxCount\": 3," cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="        \"autoFailoverOnDataDiskIssues\": true," cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="        \"autoFailoverOnDataDiskIssuesTimePeriod\": 120," cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="        \"autoFailoverServerGroup\": false" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="    }," cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="    \"buckets\": [" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="        {" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="            \"name\": \"default\"," cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="            \"type\": \"couchbase\"," cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="            \"memoryQuota\": 128," cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="            \"replicas\": 1," cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="            \"ioPriority\": \"high\"," cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="            \"evictionPolicy\": \"fullEviction\"," cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="            \"conflictResolution\": \"seqno\"," cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="            \"enableFlush\": true," cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="            \"compressionMode\": \"passive\"" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="        }" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="    ]," cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="    \"servers\": [" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="        {" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="            \"size\": 2," cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="            \"name\": \"all_services\"," cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="            \"services\": [" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="                \"data\"," cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="                \"index\"," cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="                \"query\"" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="            ]," cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="            \"pod\": {" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="                \"resources\": {}" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="            }" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="        }" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="    ]," cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="    \"authSecret\": \"moldy-bat-cb-helm-minikube\"," cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="    \"exposeAdminConsole\": true," cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="    \"adminConsoleServices\": [" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="        \"data\"" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="    ]," cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="    \"exposedFeatures\": [" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="        \"xdcr\"" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="    ]," cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="    \"softwareUpdateNotifications\": false," cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="    \"securityContext\": {}," cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="    \"logRetentionTime\": \"604800s\"," cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="    \"logRetentionCount\": 20," cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="    \"exposedFeatureServiceType\": \"NodePort\"," cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="    \"adminConsoleServiceType\": \"NodePort\"" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:50Z" level=info msg="}" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:57Z" level=info msg="Reloading CA certificate for member cb-helm-minikube-0001" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:47:57Z" level=info msg="Reloading certificate chain for member cb-helm-minikube-0001" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:48:02Z" level=info msg="Reloading certificate chain for member cb-helm-minikube-0000" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:48:17Z" level=info msg="Cluster status: balanced" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:48:17Z" level=info msg="Node status:" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:48:17Z" level=info msg="┌───────────────────────┬──────────────────┬──────────────┬────────────────┐" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:48:17Z" level=info msg="│ Server                │ Version          │ Class        │ Status         │" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:48:17Z" level=info msg="├───────────────────────┼──────────────────┼──────────────┼────────────────┤" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:48:17Z" level=info msg="│ cb-helm-minikube-0000 │ enterprise-6.0.1 │ all_services │ managed+active │" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:48:17Z" level=info msg="│ cb-helm-minikube-0001 │ enterprise-6.0.1 │ all_services │ managed+active │" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:48:17Z" level=info msg="└───────────────────────┴──────────────────┴──────────────┴────────────────┘" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:48:17Z" level=info cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:48:21Z" level=info msg="Planning upgrade of candidate cb-helm-minikube-0000 from enterprise-6.0.1 to enterprise-6.0.2" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:48:22Z" level=info msg="Creating a pod (cb-helm-minikube-0004) running Couchbase enterprise-6.0.2" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:50:12Z" level=info msg="added member (cb-helm-minikube-0004)" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:50:24Z" level=info msg="Rebalance progress: 0.000000" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:50:28Z" level=info msg="Rebalance progress: 0.553385" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:50:32Z" level=info msg="Rebalance progress: 2.832031" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:50:36Z" level=info msg="Rebalance progress: 5.631510" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:50:40Z" level=info msg="Rebalance progress: 7.779948" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:50:45Z" level=info msg="Rebalance progress: 8.268229" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:50:49Z" level=info msg="Rebalance progress: 9.212240" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:50:53Z" level=info msg="Rebalance progress: 11.328125" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:50:57Z" level=info msg="Rebalance progress: 13.932292" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:51:01Z" level=info msg="Rebalance progress: 16.276042" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:51:05Z" level=info msg="Rebalance progress: 19.075521" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:51:09Z" level=info msg="Rebalance progress: 21.256510" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:51:13Z" level=info msg="Rebalance progress: 23.144531" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:51:17Z" level=info msg="Rebalance progress: 25.358073" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:51:21Z" level=info msg="Rebalance progress: 27.766927" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:51:25Z" level=info msg="Rebalance progress: 30.305990" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:51:29Z" level=info msg="Rebalance progress: 32.454427" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:51:33Z" level=info msg="Rebalance progress: 34.765625" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:51:37Z" level=info msg="Rebalance progress: 37.239583" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:51:41Z" level=info msg="Rebalance progress: 39.355469" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:51:46Z" level=info msg="Rebalance progress: 39.713542" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:51:50Z" level=info msg="Rebalance progress: 40.332031" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:51:54Z" level=info msg="Rebalance progress: 40.852865" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:51:58Z" level=info msg="Rebalance progress: 42.708333" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:52:03Z" level=info msg="Rebalance progress: 45.638021" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:52:07Z" level=info msg="Rebalance progress: 48.437500" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:52:11Z" level=info msg="Rebalance progress: 50.000000" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:52:15Z" level=info msg="Rebalance progress: 50.000000" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:52:19Z" level=info msg="Rebalance progress: 50.000000" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:52:23Z" level=info msg="Rebalance progress: 100.000000" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:52:27Z" level=info msg="Rebalance progress: 100.000000" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:52:31Z" level=info msg="Rebalance progress: 100.000000" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:52:35Z" level=info msg="Rebalance progress: 100.000000" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:52:39Z" level=info msg="Rebalance progress: 100.000000" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:52:44Z" level=info msg="deleted pod (cb-helm-minikube-0000)" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:52:44Z" level=info msg="reconcile finished" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:52:53Z" level=info msg="Cluster status: balanced" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:52:53Z" level=info msg="Node status:" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:52:53Z" level=info msg="┌───────────────────────┬──────────────────┬──────────────┬────────────────┐" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:52:53Z" level=info msg="│ Server                │ Version          │ Class        │ Status         │" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:52:53Z" level=info msg="├───────────────────────┼──────────────────┼──────────────┼────────────────┤" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:52:53Z" level=info msg="│ cb-helm-minikube-0001 │ enterprise-6.0.1 │ all_services │ managed+active │" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:52:53Z" level=info msg="│ cb-helm-minikube-0004 │ enterprise-6.0.2 │ all_services │ managed+active │" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:52:53Z" level=info msg="└───────────────────────┴──────────────────┴──────────────┴────────────────┘" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:52:53Z" level=info cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:52:56Z" level=info msg="Planning upgrade of candidate cb-helm-minikube-0001 from enterprise-6.0.1 to enterprise-6.0.2" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:52:57Z" level=info msg="Creating a pod (cb-helm-minikube-0005) running Couchbase enterprise-6.0.2" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:53:15Z" level=info msg="added member (cb-helm-minikube-0005)" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:53:16Z" level=info msg="Rebalance progress: 0.000000" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:53:20Z" level=info msg="Rebalance progress: 0.488281" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:53:24Z" level=info msg="Rebalance progress: 2.669271" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:53:28Z" level=info msg="Rebalance progress: 4.817708" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:53:32Z" level=info msg="Rebalance progress: 7.584635" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:53:36Z" level=info msg="Rebalance progress: 10.123698" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:53:40Z" level=info msg="Rebalance progress: 12.467448" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:53:44Z" level=info msg="Rebalance progress: 14.160156" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:53:48Z" level=info msg="Rebalance progress: 16.178385" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:53:52Z" level=info msg="Rebalance progress: 18.750000" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:53:56Z" level=info msg="Rebalance progress: 21.354167" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:54:00Z" level=info msg="Rebalance progress: 23.763021" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:54:04Z" level=info msg="Rebalance progress: 26.399740" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:54:09Z" level=info msg="Rebalance progress: 29.036458" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:54:13Z" level=info msg="Rebalance progress: 31.412760" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:54:17Z" level=info msg="Rebalance progress: 33.919271" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:54:21Z" level=info msg="Rebalance progress: 36.067708" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:54:25Z" level=info msg="Rebalance progress: 38.281250" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:54:29Z" level=info msg="Rebalance progress: 40.266927" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:54:33Z" level=info msg="Rebalance progress: 42.968750" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:54:37Z" level=info msg="Rebalance progress: 45.377604" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:54:41Z" level=info msg="Rebalance progress: 46.614583" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:54:46Z" level=info msg="Rebalance progress: 48.111979" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:54:52Z" level=info msg="Rebalance progress: 48.763021" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:54:56Z" level=info msg="Rebalance progress: 49.609375" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:55:00Z" level=info msg="Rebalance progress: 50.000000" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:55:04Z" level=info msg="Rebalance progress: 50.000000" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:55:08Z" level=info msg="Rebalance progress: 50.000000" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:55:12Z" level=info msg="Rebalance progress: 100.000000" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:55:16Z" level=info msg="Rebalance progress: 100.000000" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:55:20Z" level=info msg="Rebalance progress: 100.000000" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:55:24Z" level=info msg="Rebalance progress: 100.000000" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:55:29Z" level=info msg="deleted pod (cb-helm-minikube-0001)" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:55:29Z" level=info msg="reconcile finished" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:55:38Z" level=info msg="Cluster status: balanced" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:55:38Z" level=info msg="Node status:" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:55:38Z" level=info msg="┌───────────────────────┬──────────────────┬──────────────┬────────────────┐" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:55:38Z" level=info msg="│ Server                │ Version          │ Class        │ Status         │" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:55:38Z" level=info msg="├───────────────────────┼──────────────────┼──────────────┼────────────────┤" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:55:38Z" level=info msg="│ cb-helm-minikube-0004 │ enterprise-6.0.2 │ all_services │ managed+active │" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:55:38Z" level=info msg="│ cb-helm-minikube-0005 │ enterprise-6.0.2 │ all_services │ managed+active │" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:55:38Z" level=info msg="└───────────────────────┴──────────────────┴──────────────┴────────────────┘" cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:55:38Z" level=info cluster-name=cb-helm-minikube module=cluster
+time="2019-09-17T01:55:44Z" level=info msg="reconcile finished" cluster-name=cb-helm-minikube module=cluster

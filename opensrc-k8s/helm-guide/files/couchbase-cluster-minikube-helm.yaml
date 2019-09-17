@@ -1,0 +1,39 @@
+couchbaseCluster:
+  name: "cb-helm-minikube"
+  baseImage: "couchbase/server"
+  version: "enterprise-6.0.1"
+  exposeAdminConsole: true
+  adminConsoleServices:
+    - data
+  adminConsoleServiceType: NodePort
+  exposedFeatureServiceType: NodePort
+  cluster:
+    dataServiceMemoryQuota: 256
+    indexServiceMemoryQuota: 256
+    searchServiceMemoryQuota: 256
+    eventingServiceMemoryQuota: 256
+    analyticsServiceMemoryQuota: 1024
+    indexStorageSetting: memory_optimized
+    autoFailoverTimeout: 120
+    autoFailoverMaxCount: 3
+    autoFailoverOnDataDiskIssues: true
+    autoFailoverOnDataDiskIssuesTimePeriod: 120
+    autoFailoverServerGroup: false
+  buckets:
+    default:
+      name: default
+      type: couchbase
+      memoryQuota: 128
+      replicas: 1
+      ioPriority: high
+      evictionPolicy: fullEviction
+      conflictResolution: seqno
+      enableFlush: true
+      enableIndexReplica: false
+  servers:
+    all_services:
+      size: 3
+      services:
+        - data
+        - index
+        - query
