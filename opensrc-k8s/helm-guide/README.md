@@ -165,7 +165,7 @@ In this section, you will setup kubernetes cluster using minikube.
 
 ---
 
-## Installing and Configuring Helm/Tiller
+## Installing and Configuring Helm and Tiller
 
 As mentioned earlier Helm is a package manager for k8s applications. Setting up Helm consists of installing the Helm client (helm) on your computer, and installing the Helm server (Tiller) on your Kubernetes cluster. Once you’ve set up Helm, you can then use official Couchbase Helm charts to deploy the Operator and the Couchbase Server cluster. Helm simplifies k8s application installation and management using [three big concepts](https://helm.sh/docs/using_helm/#three-big-concepts) of charts, repositories and releases.  
 
