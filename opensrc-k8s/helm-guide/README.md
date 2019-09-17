@@ -16,8 +16,8 @@ This guide walks through the recommended procedure for installing and running th
  	- [Install Hypervisor](#install-hypervisor)
  	- [Install Minikube](#install-minikube)
  - [Setup Minikube Cluster](#setup-minikube-cluster)
- - [Installing and Configuring Helm/Tiller](#installing-and-configuring-helm-and-tiller)
- - [Deploy Couchbase Autonomous Operator](#deploy-the-couchbase-autonomous-operator)
+ - [Installing and Configuring Helm and Tiller](#installing-and-configuring-helm-and-tiller)
+ - [Deploy Couchbase Autonomous Operator](#deploy-couchbase-autonomous-operator)
  - [Deploy the Couchbase Cluster](#deploy-the-couchbase-cluster)
  	- [Using TLS](#using-tls)
  - [Operations](#operations)
@@ -165,7 +165,7 @@ In this section, you will setup kubernetes cluster using minikube.
 
 ---
 
-## Installing and Configuring Helm/Tiller
+## Installing and Configuring Helm and Tiller
 
 As mentioned earlier Helm is a package manager for k8s applications. Setting up Helm consists of installing the Helm client (helm) on your computer, and installing the Helm server (Tiller) on your Kubernetes cluster. Once you’ve set up Helm, you can then use official Couchbase Helm charts to deploy the Operator and the Couchbase Server cluster. Helm simplifies k8s application installation and management using [three big concepts](https://helm.sh/docs/using_helm/#three-big-concepts) of charts, repositories and releases.  
 
