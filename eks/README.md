@@ -589,16 +589,16 @@ couchbase-operator-f6f7b6f75-pzb9m              1/1       Running   0          8
 To view which pod is running on which node you can run:
 
 ```
-$ kubectl get pod -o=custom-columns=NODE:.spec.nodeName,NAME:.metadata.name -n emart
+$ kubectl get pods -o=wide -n emart
 
-NODE                             NAME
-ip-192-168-13-57.ec2.internal    ckdemo-0000
-ip-192-168-46-117.ec2.internal   ckdemo-0001
-ip-192-168-76-24.ec2.internal    ckdemo-0002
-ip-192-168-46-117.ec2.internal   ckdemo-0003
-ip-192-168-76-24.ec2.internal    ckdemo-0004
-ip-192-168-13-57.ec2.internal    couchbase-operator-7654d844cb-d98w7
-ip-192-168-46-117.ec2.internal   couchbase-operator-admission-7ff868f54c-jh66q
+AME                                            READY     STATUS    RESTARTS   AGE       IP               NODE                             NOMINATED NODE   READINESS GATES
+ckdemo-0000                                     1/1       Running   0          4d12h     192.168.28.137   ip-192-168-13-57.ec2.internal    <none>           <none>
+ckdemo-0001                                     1/1       Running   0          4d12h     192.168.36.111   ip-192-168-46-117.ec2.internal   <none>           <none>
+ckdemo-0002                                     1/1       Running   0          4d12h     192.168.77.219   ip-192-168-76-24.ec2.internal    <none>           <none>
+ckdemo-0003                                     1/1       Running   0          4d12h     192.168.34.15    ip-192-168-46-117.ec2.internal   <none>           <none>
+ckdemo-0004                                     1/1       Running   0          4d12h     192.168.87.138   ip-192-168-76-24.ec2.internal    <none>           <none>
+couchbase-operator-7654d844cb-d98w7             1/1       Running   0          4d12h     192.168.15.77    ip-192-168-13-57.ec2.internal    <none>           <none>
+couchbase-operator-admission-7ff868f54c-jh66q   1/1       Running   0          4d12h     192.168.39.237   ip-192-168-46-117.ec2.internal   <none>           <none>
 
 ```
 If for any reason there is an exception, then you can find the details of exception from the couchbase-operator log file. To display the last 20 lines of the log, copy the name of your operator pod and run below command by replacing the operator name with the name in your environment.
@@ -675,11 +675,21 @@ And access web-console by typing https://localhost:18091 on the browser.
 
 # 4. Test Client-Application
 
-After deploying a secured Couchbase Cluster, we would like to perform some load test so that we can confirm that a client application running locally on our laptop can write JSON documents into the Couchbase bucket.
+After deploying a Couchbase Cluster, we would like to perform some load test so that we can confirm that a client application can write JSON documents into the Couchbase bucket.
 
-To connect to an SSL enabled Couchbase Cluster we need to setup Keystore locally on our laptop machine so we can securely persist the certificates we used to setup the cluster in the first place. The steps are simple and covered in [How to setup Keystore](../guides/setting_keystore.md) document.
+## 4.1 Setup Client Pod
+To demonstrate client connectivity let's first deploy a separate pod as described in the [Application Deployment Guide](./cb-operator-guide/guides/configure-app-pod.md).
 
-Once you have setup the Keystore then we are going to download a Java jar file from here:
+Now ssh to this ```client-app``` pod:
+
+```
+$ kubectl exec -it client-app -n apps -- bash
+root@client-app:/#
+```
+
+## 4.2 Download Client Application
+
+There is a simple Java application that we are going to use to perform some load test from our ```client-app``` pod.
 
 ```
 $ wget https://raw.githubusercontent.com/sahnianuj/cb-loadgen/master/bin/cbloadgen.jar
@@ -691,35 +701,67 @@ HTTP request sent, awaiting response... 200 OK
 Length: 15646628 (15M) [application/octet-stream]
 Saving to: ‘cbloadgen.jar’
 
-cbloadgen.jar     100%[====================================================================>]  14.92M  32.7MB/s    in 0.5s
+cbloadgen.jar     100%[===================>]  14.92M  32.7MB/s    in 0.5s
 
 ```
-Also, make sure that you have java installed on your machine before we run the workload test. Please run this command to make sure you have Java 1.8 or higher installed.
+
+**Note**: You can learn more about the application code and the arguments we will be using by visiting this [git repo](https://github.com/sahnianuj/cb-loadgen).
+
+We are ready to write a few thousand documents into our _default_ bucket by using the jar file we downloaded before. Just one last thing we need is the FQDN of the Couchbase Server pod.
+
+### 4.2.1 NodePort Cluster
+
+If you have deployed Cluster using ```NodePort``` setting, then you would ssh to any of the Couchbase Server pod first and perform ```hostname -f``` like this:
 
 ```
-$ java -version
+$ kubectl exec -it ckdemo-0000 -n emart -- /bin/bash
 
-java version "1.8.0_144"
-Java(TM) SE Runtime Environment (build 1.8.0_144-b01)
-Java HotSpot(TM) 64-Bit Server VM (build 25.144-b01, mixed mode)
+root@ckdemo-0000:/#hostname -f
+ckdemo-0000.ckdemo.emart.svc.cluster.local
+```
+So the hostname ```-h``` we will use in our ```cbloadgen``` client application is **ckdemo-0000.ckdemo.emart.svc.cluster.local**
+
+Here is the command to use:
+
+```
+$ java -jar cbloadgen.jar -t 10 -d 10000 \
+-h ckdemo-0000.ckdemo.emart.svc.cluster.local \
+-u Administrator -p password -b default -e false
+
+Connection created.
+*****************************************************************
+Time elapsed: 12935 ms
+Average Throughput: 773 ops/sec
+Average Latency: 1.29 ms
+*****************************************************************
 ```
 
-We are ready to write a few thousand documents into our _default_ bucket by using the jar file we downloaded before. Here is the command to use:
+### 4.2.2 Cluster with SSL & LoadBalancer
+
+However, if we have deployed your Couchbase Cluster with a LoadBalancer in the front then we can simply use public-hostname of any of the Couchbase Cluster node. You would just need to setup ```Keystore``` locally on our client pod so the communication is secured using SSL certificates. The steps are simple and covered in [How to setup Keystore](../guides/setting_keystore.md) document.
+
+The difference here is that we are going to set ```-e``` as true which requires keystore path and keystore password as mentioned below:
 
 ```
-$ java -jar cbloadgen.jar -t 10 -d 1000 \
--h a4b2d970bd57e11e9b5a312280bcc79e-370364291.us-east-1.elb.amazonaws.com \
--u Administrator -p password -b default -e true -ks ~/.keystore -kp password
+$ java -jar cbloadgen.jar -t 10 -d 10000 \
+-h ckdemo-0000.ckdemo.sewestus.com \
+-u Administrator -p password -b default \
+-e true -ks ~/.keystore -kp password
 
 Connection created.
 ...............
 *****************************************************************
-Time elapsed: 1785 ms
-Average Throughput: 560 ops/sec
-Average Latency: 1.78 ms
+Time elapsed: 12935 ms
+Average Throughput: 773 ops/sec
+Average Latency: 1.29 ms
 *****************************************************************
 ```
-In order to learn more about the arguments used, please follow the [README](https://github.com/sahnianuj/cb-loadgen) file.
+
+
+You can connect to the UI and click ```default``` bucket to confirm 1000s of documents written there.
+
+![](./cb-operator-guide/assets/default-bucket.png)
+Figure 2: Default bucket after ```cbloadgen``` client app run.
 
 **Note**: There could be a significant network latency between your laptop and Amazon EKS cluster so please take performance numbers with a grain of salt.
 
@@ -753,12 +795,12 @@ pod "ckdemo-0001" deleted
 
 ```
 ![](./cb-operator-guide/assets/server-dropped.png)
-Figure 2: One of the Data pod is dropped.
+Figure 3: One of the Data pod is dropped.
 
 After Couchbase Autonomous Operator detects the failure it triggers the healing process.
 
 ![](./cb-operator-guide/assets/server-recovered.png)
-Figure 3: Data node with same name and persistent volume will be restored automatically.
+Figure 4: Data node with same name and persistent volume will be restored automatically.
 
 ### 5.2. On-Demand Scaling - Up & Down
 
@@ -834,7 +876,7 @@ couchbase-operator-f6f7b6f75-pzb9m              1/1       Running    0          
   After pod is ready you can view it from the Web Console as well.
 
   ![](./cb-operator-guide/assets/scaled-out.png)
-  Figure 4: Cluster now has three Couchbase server pods hosting Index and Query services spread across three server-groups.
+  Figure 5: Cluster now has three Couchbase server pods hosting Index and Query services spread across three server-groups.
 
 ```
 
