@@ -439,6 +439,7 @@ Above output means we just have default gp2 storage class and we need to create 
 		 name: gp2-multi-zone
 	parameters:
 		 type: gp2
+		 fsType: xfs
 	provisioner: kubernetes.io/aws-ebs
 	reclaimPolicy: Delete
 	volumeBindingMode: WaitForFirstConsumer
