@@ -62,7 +62,7 @@ $ update-java-alternatives -s /usr/lib/jvm/java-1.8.0-openjdk-amd64
 
 ```
 
-Please follow the prompts carefully and copy/paste the paths where required. Once all of the above packaged are installed verify the JRE version to be 1.8 or above:
+Please follow the prompts carefully and copy/paste the paths where required. Once all of the above packages are installed verify the JRE version to be 1.8 or above:
 
 ```
 $java -version

@@ -683,7 +683,7 @@ To demonstrate client connectivity let's first deploy a separate pod as describe
 Now ssh to this ```client-app``` pod:
 
 ```
-$ kubectl exec -it client-app -n apps -- bash
+$ kubectl exec -it client-app -n apps -- /bin/bash
 root@client-app:/#
 ```
 
