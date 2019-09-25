@@ -318,9 +318,9 @@ clusterrolebinding.rbac.authorization.k8s.io/couchbase-operator created
 Now before we proceed further let's make sure all the roles and service accounts are created under the namespace _emart_. To do that run these three checks and make sure each get returns something:
 
 ```
-Kubectl get roles -n emart
-Kubectl get rolebindings -n emart
-Kubectl get sa -n emart
+kubectl get roles -n emart
+kubectl get rolebindings -n emart
+kubectl get sa -n emart
 ```
 
 ### 2.8. Deploy Couchbase Operator
