@@ -43,6 +43,10 @@
 
 	5.3. **Couchbase Automated Upgrade**
 
+	5.4. **Backing up and Restoring a Couchbase Deployment**
+
+	5.5. **Cleanup**
+
 6. **Conclusion**
 
 
@@ -989,7 +993,139 @@ ckdemo-0009-exposed-ports      LoadBalancer   10.100.156.109   ad2fcf7c1c9cd11e9
 
 Refreshing external-ip is not a desired behavior from Couchbase client perspective and in later section we will describe how you can add ```externalDNS``` in front of your EKS cluster so that there is no impact of IP being changed as client code will use Fully Qualified Domain Names (FQDN) instead.
 
-#### 5.3.3. Cleanup
+### 5.4. Backing up and Restoring a Couchbase Deployment
+
+The Couchbase Autonomous Operator automatically repairs and rebalances Couchbase clusters to maintain high availability. It is considered best practice to regularly backup your data, and also test restoring it works as expected before disaster recovery is required.
+
+This functionality is not provided by the Operator and left to the cluster administrator to define backup policies and test data restoration. This section describes some common patterns that may be employed to perform the required functions.
+
+
+#### 5.4.1. Backing Up
+
+The Kubernetes resource definitions below illustrate a typical arrangement for backup that saves the state of the entire cluster.
+
+```
+# Define backup storage volume
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: couchbase-cluster-backup
+spec:
+  resources:
+    requests:
+      storage: 100Gi
+  storageClassName: standard
+  accessModes:
+    - ReadWriteOnce
+```
+
+A persistent volume is claimed in order to keep data safe in the event of an outage. You will need to plan the claim size based on your expected data set size, the number of days data retention and whether incremental backups are used at all.
+
+```
+# Create a backup repository
+kind: Job
+apiVersion: batch/v1
+metadata:
+  name: couchbase-cluster-backup-create
+spec:
+  template:
+    spec:
+      containers:
+        - name: couchbase-cluster-backup-create
+          image: couchbase/server:enterprise-6.0.2
+          command: ["cbbackupmgr", "config", "--archive", "/backups", "--repo", "demo"]
+          volumeMounts:
+            - name: "couchbase-cluster-backup-volume"
+              mountPath: "/backups"
+      volumes:
+        - name: couchbase-cluster-backup-volume
+          persistentVolumeClaim:
+            claimName: couchbase-cluster-backup
+      restartPolicy: Never
+```      
+
+A job is created to mount the persistent volume and initialize a backup repository. The repository is named `demo` which will map to the cluster name in later specifications.
+
+```
+kind: CronJob
+apiVersion: batch/v1beta1
+metadata:
+  name: couchbase-cluster-backup
+spec:
+  schedule: "0 3 * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+            - name: couchbase-cluster-backup-full
+              image: couchbase/server:enterprise-6.0.2
+              command: ["cbbackupmgr", "backup", "--archive", "/backups", "--repo", "demo", "--cluster", "couchbase://cb-gke-emart.emart.svc", "--username", "Administrator", "--password", "password"]
+              volumeMounts:
+                - name: "couchbase-cluster-backup-volume"
+                  mountPath: "/backups"
+          volumes:
+            - name: couchbase-cluster-backup-volume
+              persistentVolumeClaim:
+                claimName: couchbase-cluster-backup
+          restartPolicy: Never
+```
+
+A backup cron job runs daily at a time that had low cluster utilization. The first time it runs a full backup is taken, for other runs an incremental backup is run to save disk space.
+
+```
+kind: Job
+apiVersion: batch/v1
+metadata:
+  name: couchbase-cluster-backup-merge
+spec:
+  spec:
+    template:
+      spec:
+        containers:
+          - name: couchbase-cluster-backup-prune
+            image: couchbase/server:enterprise-6.0.2
+            command: ["cbbackupmgr", "merge", "--archive", "/backups", "--repo", "demo", "--start", "2018-07-25T13_02_45.92773833Z", "--end", "2020-07-25T14_57_57.83339572Z"]
+            volumeMounts:
+              - name: "couchbase-cluster-backup-volume"
+                mountPath: "/backups"
+        volumes:
+         - name: couchbase-cluster-backup-volume
+            persistentVolumeClaim:
+              claimName: couchbase-cluster-backup
+        restartPolicy: Never
+```
+
+A merge job should be run periodically to compact full and incremental backups into a single full backup. This step will reduce disk utilization.
+
+
+#### 5.4.2. Restoring
+
+Much like a backup we can restore data to a new Couchbase cluster with a Kubernetes Job.
+
+```
+kind: Job
+apiVersion: batch/v1
+metadata:
+  name: couchbase-cluster-restore
+spec:
+  template:
+    spec:
+      containers:
+        - name: couchbase-cluster-restore
+          image: couchbase/server:enterprise-6.0.2
+          command: ["cbbackupmgr", "restore", "--archive", "/backups", "--repo", "demo", "--cluster", "couchbase://couchbase.emart.svc", "--username", "Administrator", "--password", "password"]
+          volumeMounts:
+            - name: "couchbase-cluster-backup-volume"
+              mountPath: "/backups"
+      volumes:
+        - name: couchbase-cluster-backup-volume
+          persistentVolumeClaim:
+            claimName: couchbase-cluster-backup
+      restartPolicy: Never
+```      
+
+### 5.5. Cleanup
 
 After lab is done delete EKS cluster and every other resource deployed during the setup.
 
