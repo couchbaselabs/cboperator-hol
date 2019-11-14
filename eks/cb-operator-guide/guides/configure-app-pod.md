@@ -16,7 +16,7 @@ namespace/apps created
 Create the application pod based on the manifestation file [app_pod.yaml](../files/app-pod.yaml)
 
 ```
-$ kubectl create -f app_pod.yaml --namespace apps
+$ kubectl create -f app-pod.yaml --namespace apps
 pod/app01 created
 ```
 
