@@ -726,10 +726,16 @@ ckdemo-0000.ckdemo.emart.svc.cluster.local
 ```
 So the hostname ```-h``` we will use in our ```cbloadgen``` client application is **ckdemo-0000.ckdemo.emart.svc.cluster.local**
 
+Going back to your client application first:
+
+```
+$ kubectl exec -it client-app -n apps -- /bin/bash
+root@client-app:/#
+```
 Here is the command to use:
 
 ```
-$ java -jar cbloadgen.jar -t 10 -d 10000 \
+root@client-app:/# java -jar cbloadgen.jar -t 10 -d 10000 \
 -h ckdemo-0000.ckdemo.emart.svc.cluster.local \
 -u Administrator -p password -b default -e false
 
@@ -740,6 +746,34 @@ Average Throughput: 773 ops/sec
 Average Latency: 1.29 ms
 *****************************************************************
 ```
+In production you would not be connecting to a specific pod or a list of pods because pod names will change over the time so as a best practice is to use internal DNS service deployed within the Kubernetes cluster. Let's take a quick look at the DNS services deployed:
+
+```
+$  kubectl get svc --namespace emart -w
+
+NAME                           TYPE           CLUSTER-IP       EXTERNAL-IP  PORT(S)                           AGE
+ckdemo-0000-exposed-ports      LoadBalancer   10.100.218.99    <pending>     18091:31325/TCP,11207:31716/TCP   2m
+ckdemo-0001-exposed-ports      LoadBalancer   10.100.67.128    <pending>     18091:31463/TCP,11207:30847/TCP   2m
+...
+ckdemo-srv                     ClusterIP      None             <none>        11210/TCP,11207/TCP               6m
+
+```
+
+In our case ```ckdemo-srv``` is the name of the internal DNS service. So to connect from the application pod deployed under a separate namespace ```apps```, you would use ```connectionString``` as ```couchbase://cbdemo-srv.emart.svc```. Here is the full command to run the client application with the ```connectionString```:
+
+```
+root@client-app:/# java -jar cbloadgen.jar -t 10 -d 10000 \
+-h couchbase://ckdemo-srv.emart.svc -u Administrator -p password \
+-b default -e false
+
+Connection created.
+*****************************************************************
+Time elapsed: 13680 ms
+Average Throughput: 730 ops/sec
+Average Latency: 1.37 ms
+*****************************************************************
+```
+Note: ```emart``` in the ```connectionString``` is the namespace where Couchbase Cluster is deployed.
 
 ### 4.2.2 Cluster with SSL & LoadBalancer
 
