@@ -25,7 +25,7 @@
 
 	3.1. **Create Secret for Couchbase Admin Console**
 
-	3.2. **Create Google storage class for the GKS cluster**
+	3.2. **Create storage class for the k8s cluster**
 
 	3.3. **Server Group Awareness**
 
@@ -415,7 +415,7 @@ Output:
 Secret/cb-example-auth created
 ```
 
-### 3.2 Create AWS storage class for the EKS cluster
+### 3.2 Create storage class for the k8s cluster
 
 Now in order to use PersistentVolume for Couchbase services (data, index, search, etc.), we need to create Storage Classes (SC) first in each of the Availability Zones (AZ). Let’s begin by checking what storage classes exist in our environment.
 
