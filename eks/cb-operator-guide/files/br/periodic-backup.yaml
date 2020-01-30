@@ -3,7 +3,7 @@ apiVersion: batch/v1beta1
 metadata:
   name: couchbase-cluster-backup-create
 spec:
-  schedule: "*/5 * * * *"
+  schedule: "*/30 * * * *"
   jobTemplate:
     spec:
       template:
@@ -34,7 +34,7 @@ spec:
             #Run the script so it can do a) Backup b) Compaction c) Merge with each snapshot
             - name: periodic-merge
               image: couchbase/server:enterprise-6.5.0
-              command: ["sh", "-c" ,"/backups/backup-with-periodic-merge.sh", "--cluster", "cbdemo-srv.emart.svc"]
+              command: ["sh", "-c" ,"/backups/backup-with-periodic-merge.sh --cluster cbdemo-srv.emart.svc"]
               volumeMounts:
                 - name: "couchbase-cluster-backup-volume"
                   mountPath: "/backups"
