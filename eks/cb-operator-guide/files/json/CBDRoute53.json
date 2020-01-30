@@ -1,0 +1,46 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "VisualEditor0",
+            "Effect": "Allow",
+            "Action": [
+                "route53:ListTrafficPolicyInstances",
+                "route53:GetTrafficPolicyInstanceCount",
+                "route53:GetChange",
+                "route53:ListTrafficPolicyVersions",
+                "route53:TestDNSAnswer",
+                "route53:GetHostedZone",
+                "route53:GetHealthCheck",
+                "route53:ListHostedZonesByName",
+                "route53:ListQueryLoggingConfigs",
+                "route53:GetCheckerIpRanges",
+                "route53:ListTrafficPolicies",
+                "route53:ListResourceRecordSets",
+                "route53:ListGeoLocations",
+                "route53:GetTrafficPolicyInstance",
+                "route53:GetHostedZoneCount",
+                "route53:GetHealthCheckCount",
+                "route53:GetQueryLoggingConfig",
+                "route53:ListReusableDelegationSets",
+                "route53:GetHealthCheckLastFailureReason",
+                "route53:GetHealthCheckStatus",
+                "route53:ListTrafficPolicyInstancesByHostedZone",
+                "route53:ListHostedZones",
+                "route53:ListVPCAssociationAuthorizations",
+                "route53:GetReusableDelegationSetLimit",
+                "route53:ChangeResourceRecordSets",
+                "route53:GetReusableDelegationSet",
+                "route53:ListTagsForResource",
+                "route53:ListTagsForResources",
+                "route53:GetAccountLimit",
+                "route53:ListTrafficPolicyInstancesByPolicy",
+                "route53:ListHealthChecks",
+                "route53:GetGeoLocation",
+                "route53:GetHostedZoneLimit",
+                "route53:GetTrafficPolicy"
+            ],
+            "Resource": "*"
+        }
+    ]
+}

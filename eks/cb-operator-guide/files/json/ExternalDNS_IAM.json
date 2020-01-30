@@ -1,0 +1,42 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "VisualEditor0",
+            "Effect": "Allow",
+            "Action": [
+                "iam:ListRoleTags",
+                "iam:ListServerCertificates",
+                "iam:ListPoliciesGrantingServiceAccess",
+                "iam:ListServiceSpecificCredentials",
+                "iam:ListMFADevices",
+                "iam:ListSigningCertificates",
+                "iam:ListVirtualMFADevices",
+                "iam:ListInstanceProfilesForRole",
+                "iam:ListSSHPublicKeys",
+                "iam:ListAttachedRolePolicies",
+                "iam:ListAttachedUserPolicies",
+                "iam:ListAttachedGroupPolicies",
+                "iam:ListRolePolicies",
+                "iam:ListAccessKeys",
+                "iam:ListPolicies",
+                "iam:ListSAMLProviders",
+                "iam:ListGroupPolicies",
+                "iam:ListEntitiesForPolicy",
+                "iam:ListRoles",
+                "iam:ListUserPolicies",
+                "iam:ListInstanceProfiles",
+                "iam:ListPolicyVersions",
+                "iam:ListOpenIDConnectProviders",
+                "iam:ListGroupsForUser",
+                "iam:ListAccountAliases",
+                "iam:ListUsers",
+                "iam:ListGroups",
+                "iam:GetLoginProfile",
+                "iam:ListUserTags",
+                "iam:GetAccountSummary"
+            ],
+            "Resource": "*"
+        }
+    ]
+}

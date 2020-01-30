@@ -247,13 +247,13 @@ aws-cli/1.16.159 Python/2.7.16 Windows/10 botocore/1.12.149
 
 ## Step 5: Configure AWS CLI
 
-We will configure AWS CLI credentials and options by running aws configure command. Use the following values for AWS Access Key ID, AWS Secret Access Key, Default region name, and Default output format:
+We need to configure AWS CLI credentials and options by running aws configure command. Use your AWS Access Key ID, AWS Secret Access Key from your AWS account. And for this workshop we will be using _Default region name_, and _Default output format_ as following:
 
 | NAME              | VALUE |
 | --------------------- | ----------- |
 |AWS Access Key ID	|A*****************|
 |AWS Secret Access Key|	L******************************/8*******|
-|Default region name	|us-east-2|
+|Default region name	|us-east-1|
 |Default output format	|json|
 
 Run the aws configure command and enter each of the values provided above, as shown below:

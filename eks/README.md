@@ -25,7 +25,7 @@
 
 	3.1. **Create Secret for Couchbase Admin Console**
 
-	3.2. **Create Google storage class for the GKS cluster**
+	3.2. **Create storage class for the k8s cluster**
 
 	3.3. **Server Group Awareness**
 
@@ -43,6 +43,10 @@
 
 	5.3. **Couchbase Automated Upgrade**
 
+	5.4. **Backing up and Restoring a Couchbase Deployment**
+
+	5.5. **Cleanup**
+
 6. **Conclusion**
 
 
@@ -52,9 +56,63 @@ There are two important prerequisites before we begin the deployment of Couchbas
 
 1. You have installed _kubectl_ & _AWS CLI_ on your local machine as described in the [guide](./cb-operator-guide/guides/prerequisite-tools.md).
 
-2. You have AWS account and have setup Amazon EKS cluster as per the [EKS Instruction Guide](./cb-operator-guide/guides/eks-setup.md).
+2. You have installed and configured ```eksctl``` as per the [Getting Started with eksctl](https://docs.aws.amazon.com/eks/latest/userguide/getting-started-eksctl.html) guide.
 
-In the labs below we will be using us-east-1 as the region and us-east-1a/1b/1c as three availability-zones but you can deploy to any region/zones by making minor changes to YAML files in the examples below.
+3. Next we will use single command to install EKS Cluster using ```eksctl``` command.
+
+The specifications of the cluster are:
+* --name: xyzEKS (optional)
+* --node-type: m5.xlarge (or better)
+* --nodes 3 and max upto 6
+
+```
+$ eksctl create cluster \
+--name xyzEKS \
+--version 1.14 \
+--region us-east-1 \
+--zones us-east-1a,us-east-1b,us-east-1c \
+--nodegroup-name standard-workers \
+--node-type m5.xlarge \
+--nodes 3 \
+--nodes-min 3 \
+--nodes-max 6 \
+--node-ami auto
+
+[ℹ]  using region us-east-1
+[ℹ]  setting availability zones to [us-east-1c us-east-1b]
+[ℹ]  subnets for us-east-1a - public:192.168.0.0/19 private:192.168.96.0/19
+[ℹ]  subnets for us-east-1b - public:192.168.32.0/19 private:192.168.128.0/19
+[ℹ]  subnets for us-east-1c - public:192.168.64.0/19 private:192.168.160.0/19
+[ℹ]  nodegroup "standard-workers" will use "ami-08739803f18dcc019" [AmazonLinux2/1.14]
+[ℹ]  using Kubernetes version 1.14
+[ℹ]  creating EKS cluster "xyzEKS" in "us-east-1" region
+[ℹ]  will create 2 separate CloudFormation stacks for cluster itself and the initial nodegroup
+[ℹ]  if you encounter any issues, check CloudFormation console or try 'eksctl utils describe-stacks --region=us-east-1 --name=xyzEKS'
+[ℹ]  CloudWatch logging will not be enabled for cluster "xyzEKS" in "us-east-1"
+[ℹ]  you can enable it with 'eksctl utils update-cluster-logging --region=us-east-1 --name=xyzEKS'
+[ℹ]  2 sequential tasks: { create cluster control plane "xyzEKS", create nodegroup "standard-workers" }
+[ℹ]  building cluster stack "eksctl-xyzEKS-cluster"
+[ℹ]  deploying stack "eksctl-xyzEKS-cluster"
+[ℹ]  deploying stack "eksctl-xyzEKS-nodegroup-standard-workers"
+[✔]  all EKS cluster resource for "xyzEKS" had been created
+[✔]  saved kubeconfig as "/Users/first.last/.kube/config"
+[ℹ]  nodegroup "standard-workers" has 0 node(s)
+[ℹ]  waiting for at least 3 node(s) to become ready in "standard-workers"
+[ℹ]  nodegroup "standard-workers" has 3 node(s)
+[ℹ]  node "ip-192-168-13-57.ec2.internal" is ready
+[ℹ]  node "ip-192-168-46-117.ec2.internal" is ready
+[ℹ]  node "ip-192-168-76-24.ec2.internal" is ready
+[✔]  EKS cluster "xyzEKS" in "us-east-1" region is ready
+```
+
+To learn more about the available arguments run:
+
+```
+$ eksctl create cluster --help
+```
+
+
+In the labs below we will be using us-east-1 as the region and three  availability-zones but you can deploy to any region/zones by simply changing ```--region``` and ```--zones``` in the above ```eksctl``` command.
 
 
 # 2. Deploy Couchbase Autonomous Operator
@@ -66,9 +124,9 @@ Before we begin with the setup of Couchbase Operator, run ‘kubectl get nodes�
 $ kubectl get nodes
 
 NAME                              STATUS    ROLES     AGE       VERSION
-ip-192-168-106-132.ec2.internal   Ready     <none>    110m      v1.11.9
-ip-192-168-153-241.ec2.internal   Ready     <none>    110m      v1.11.9
-ip-192-168-218-112.ec2.internal   Ready     <none>    110m      v1.11.9
+ip-192-168-13-57.ec2.internal    Ready     <none>    73m       v1.14.6-eks-5047ed
+ip-192-168-46-117.ec2.internal   Ready     <none>    73m       v1.14.6-eks-5047ed
+ip-192-168-76-24.ec2.internal    Ready     <none>    73m       v1.14.6-eks-5047ed
 ```
 
 After we have tested that we can connect to Kubernetes control plane running on Amazon EKS cluster from our local machine, we can now begin with the steps required to deploy Couchbase Autonomous Operator, which is the glue technology enabling Couchbase Server cluster to be managed by Kubernetes.
@@ -264,9 +322,9 @@ clusterrolebinding.rbac.authorization.k8s.io/couchbase-operator created
 Now before we proceed further let's make sure all the roles and service accounts are created under the namespace _emart_. To do that run these three checks and make sure each get returns something:
 
 ```
-Kubectl get roles -n emart
-Kubectl get rolebindings -n emart
-Kubectl get sa -n emart
+kubectl get roles -n emart
+kubectl get rolebindings -n emart
+kubectl get sa -n emart
 ```
 
 ### 2.8. Deploy Couchbase Operator
@@ -357,7 +415,7 @@ Output:
 Secret/cb-example-auth created
 ```
 
-### 3.2 Create AWS storage class for the EKS cluster
+### 3.2 Create storage class for the k8s cluster
 
 Now in order to use PersistentVolume for Couchbase services (data, index, search, etc.), we need to create Storage Classes (SC) first in each of the Availability Zones (AZ). Let’s begin by checking what storage classes exist in our environment.
 
@@ -385,6 +443,7 @@ Above output means we just have default gp2 storage class and we need to create 
 		 name: gp2-multi-zone
 	parameters:
 		 type: gp2
+		 fsType: xfs
 	provisioner: kubernetes.io/aws-ebs
 	reclaimPolicy: Delete
 	volumeBindingMode: WaitForFirstConsumer
@@ -532,6 +591,21 @@ couchbase-operator-admission-6bf9bf8848-zdc7x   1/1       Running   0          9
 couchbase-operator-f6f7b6f75-pzb9m              1/1       Running   0          8m17s
 ```
 
+To view which pod is running on which node you can run:
+
+```
+$ kubectl get pods -o=wide -n emart
+
+AME                                            READY     STATUS    RESTARTS   AGE       IP               NODE                             NOMINATED NODE   READINESS GATES
+ckdemo-0000                                     1/1       Running   0          4d12h     192.168.28.137   ip-192-168-13-57.ec2.internal    <none>           <none>
+ckdemo-0001                                     1/1       Running   0          4d12h     192.168.36.111   ip-192-168-46-117.ec2.internal   <none>           <none>
+ckdemo-0002                                     1/1       Running   0          4d12h     192.168.77.219   ip-192-168-76-24.ec2.internal    <none>           <none>
+ckdemo-0003                                     1/1       Running   0          4d12h     192.168.34.15    ip-192-168-46-117.ec2.internal   <none>           <none>
+ckdemo-0004                                     1/1       Running   0          4d12h     192.168.87.138   ip-192-168-76-24.ec2.internal    <none>           <none>
+couchbase-operator-7654d844cb-d98w7             1/1       Running   0          4d12h     192.168.15.77    ip-192-168-13-57.ec2.internal    <none>           <none>
+couchbase-operator-admission-7ff868f54c-jh66q   1/1       Running   0          4d12h     192.168.39.237   ip-192-168-46-117.ec2.internal   <none>           <none>
+
+```
 If for any reason there is an exception, then you can find the details of exception from the couchbase-operator log file. To display the last 20 lines of the log, copy the name of your operator pod and run below command by replacing the operator name with the name in your environment.
 
 ```
@@ -580,11 +654,12 @@ ckdemo-0004-exposed-ports      LoadBalancer   10.100.162.33    <pending>     180
 ckdemo-srv                     ClusterIP      None             <none>        11210/TCP,11207/TCP               6m
 ckdemo-ui                      NodePort       10.100.111.34    <none>        8091:31106/TCP,18091:30156/TCP    6m
 couchbase-operator-admission   ClusterIP      10.100.70.83     <none>        443/TCP                           23h
-ckdemo-0000-exposed-ports      LoadBalancer   10.100.218.99    a3e1e07e1c9bb11e988541276313ac26-929659888.us-east-1.elb.amazonaws.com    18091:31325/TCP,11207:31716/TCP   5m6s
-ckdemo-0001-exposed-ports      LoadBalancer   10.100.67.128    a3e302ed5c9bb11e988541276313ac26-1624506791.us-east-1.elb.amazonaws.com   18091:31463/TCP,11207:30847/TCP   5m5s
-ckdemo-0002-exposed-ports      LoadBalancer   10.100.107.146   a3e0f0732c9bb11e988541276313ac26-1179001987.us-east-1.elb.amazonaws.com   18091:32242/TCP,11207:30585/TCP   5m6s
-ckdemo-0003-exposed-ports      LoadBalancer   10.100.202.204   a3e14de9cc9bb11e988541276313ac26-1849814018.us-east-1.elb.amazonaws.com   18091:32766/TCP,18092:32672/TCP   5m6s
-ckdemo-0004-exposed-ports      LoadBalancer   10.100.162.33    a3e198391c9bb11e988541276313ac26-11092324.us-east-1.elb.amazonaws.com     18091:30420/TCP,18092:30063/TCP   5m6s
+ckdemo-0000-exposed-ports      LoadBalancer   10.100.89.138    a4b2d970bd57e11e9b5a312280bcc79e-370364291.us-east-1.elb.amazonaws.com    18091:32447/TCP,11207:32463/TCP                   8m33s
+ckdemo-0001-exposed-ports      LoadBalancer   10.100.38.149    a4b42a873d57e11e9b5a312280bcc79e-623488154.us-east-1.elb.amazonaws.com    18091:30067/TCP,11207:32141/TCP                   8m33s
+ckdemo-0002-exposed-ports      LoadBalancer   10.100.189.63    a4b1de878d57e11e9b5a312280bcc79e-1553729680.us-east-1.elb.amazonaws.com   18091:31875/TCP,11207:31995/TCP                   8m33s
+ckdemo-0003-exposed-ports      LoadBalancer   10.100.124.204   a4b244c85d57e11e9b5a312280bcc79e-1997510702.us-east-1.elb.amazonaws.com   18091:32529/TCP,18092:30013/TCP,18093:32722/TCP   8m33s
+ckdemo-0004-exposed-ports      LoadBalancer   10.100.93.123    a4b28f156d57e11e9b5a312280bcc79e-200019538.us-east-1.elb.amazonaws.com    18091:30243/TCP,18092:31285/TCP,18093:30002/TCP   8m33s
+
 ```
 
 
@@ -605,11 +680,21 @@ And access web-console by typing https://localhost:18091 on the browser.
 
 # 4. Test Client-Application
 
-After deploying a secured Couchbase Cluster, we would like to perform some load test so that we can confirm that a client application running locally on our laptop can write JSON documents into the Couchbase bucket.
+After deploying a Couchbase Cluster, we would like to perform some load test so that we can confirm that a client application can write JSON documents into the Couchbase bucket.
 
-To connect to an SSL enabled Couchbase Cluster we need to setup Keystore locally on our laptop machine so we can securely persist the certificates we used to setup the cluster in the first place. The steps are simple and covered in [How to setup Keystore](../guides/setting_keystore.md) document.
+## 4.1 Setup Client Pod
+To demonstrate client connectivity let's first deploy a separate pod as described in the [Application Deployment Guide](./cb-operator-guide/guides/configure-app-pod.md).
 
-Once you have setup the Keystore then we are going to download a Java jar file from here:
+Now ssh to this ```client-app``` pod:
+
+```
+$ kubectl exec -it client-app -n apps -- /bin/bash
+root@client-app:/#
+```
+
+## 4.2 Download Client Application
+
+There is a simple Java application that we are going to use to perform some load test from our ```client-app``` pod.
 
 ```
 $ wget https://raw.githubusercontent.com/sahnianuj/cb-loadgen/master/bin/cbloadgen.jar
@@ -621,34 +706,101 @@ HTTP request sent, awaiting response... 200 OK
 Length: 15646628 (15M) [application/octet-stream]
 Saving to: ‘cbloadgen.jar’
 
-cbloadgen.jar     100%[====================================================================>]  14.92M  32.7MB/s    in 0.5s
+cbloadgen.jar     100%[===================>]  14.92M  32.7MB/s    in 0.5s
 
 ```
-Also, make sure that you have java installed on your machine before we run the workload test. Please run this command to make sure you have Java 1.8 or higher installed.
+
+**Note**: You can learn more about the application code and the arguments we will be using by visiting this [git repo](https://github.com/sahnianuj/cb-loadgen).
+
+We are ready to write a few thousand documents into our _default_ bucket by using the jar file we downloaded before. Just one last thing we need is the FQDN of the Couchbase Server pod.
+
+### 4.2.1 NodePort Cluster
+
+If you have deployed Cluster using ```NodePort``` setting, then you would ssh to any of the Couchbase Server pod first and perform ```hostname -f``` like this:
 
 ```
-$ java -version
+$ kubectl exec -it ckdemo-0000 -n emart -- /bin/bash
 
-java version "1.8.0_144"
-Java(TM) SE Runtime Environment (build 1.8.0_144-b01)
-Java HotSpot(TM) 64-Bit Server VM (build 25.144-b01, mixed mode)
+root@ckdemo-0000:/#hostname -f
+ckdemo-0000.ckdemo.emart.svc.cluster.local
+```
+So the hostname ```-h``` we will use in our ```cbloadgen``` client application is **ckdemo-0000.ckdemo.emart.svc.cluster.local**
+
+Going back to your client application first:
+
+```
+$ kubectl exec -it client-app -n apps -- /bin/bash
+root@client-app:/#
+```
+Here is the command to use:
+
+```
+root@client-app:/# java -jar cbloadgen.jar -t 10 -d 10000 \
+-h ckdemo-0000.ckdemo.emart.svc.cluster.local \
+-u Administrator -p password -b default -e false
+
+Connection created.
+*****************************************************************
+Time elapsed: 12935 ms
+Average Throughput: 773 ops/sec
+Average Latency: 1.29 ms
+*****************************************************************
+```
+In production you would not be connecting to a specific pod or a list of pods because pod names will change over the time so as a best practice is to use internal DNS service deployed within the Kubernetes cluster. Let's take a quick look at the DNS services deployed:
+
+```
+$  kubectl get svc --namespace emart -w
+
+NAME                           TYPE           CLUSTER-IP       EXTERNAL-IP  PORT(S)                           AGE
+ckdemo-0000-exposed-ports      LoadBalancer   10.100.218.99    <pending>     18091:31325/TCP,11207:31716/TCP   2m
+ckdemo-0001-exposed-ports      LoadBalancer   10.100.67.128    <pending>     18091:31463/TCP,11207:30847/TCP   2m
+...
+ckdemo-srv                     ClusterIP      None             <none>        11210/TCP,11207/TCP               6m
+
 ```
 
-We are ready to write a few thousand documents into our _default_ bucket by using the jar file we downloaded before. Here is the command to use:
+In our case ```ckdemo-srv``` is the name of the internal DNS service. So to connect from the application pod deployed under a separate namespace ```apps```, you would use ```connectionString``` as ```couchbase://cbdemo-srv.emart.svc```. Here is the full command to run the client application with the ```connectionString```:
 
 ```
-$ java -jar cbloadgen.jar -t 10 -d 1000 -h localhost -u Administrator \
--p password -b default -e true -ks ~/.keystore -kp password
+root@client-app:/# java -jar cbloadgen.jar -t 10 -d 10000 \
+-h couchbase://ckdemo-srv.emart.svc -u Administrator -p password \
+-b default -e false
+
+Connection created.
+*****************************************************************
+Time elapsed: 13680 ms
+Average Throughput: 730 ops/sec
+Average Latency: 1.37 ms
+*****************************************************************
+```
+Note: ```emart``` in the ```connectionString``` is the namespace where Couchbase Cluster is deployed.
+
+### 4.2.2 Cluster with SSL & LoadBalancer
+
+However, if we have deployed your Couchbase Cluster with a LoadBalancer in the front then we can simply use public-hostname of any of the Couchbase Cluster node. You would just need to setup ```Keystore``` locally on our client pod so the communication is secured using SSL certificates. The steps are simple and covered in [How to setup Keystore](../guides/setting_keystore.md) document.
+
+The difference here is that we are going to set ```-e``` as true which requires keystore path and keystore password as mentioned below:
+
+```
+$ java -jar cbloadgen.jar -t 10 -d 10000 \
+-h ckdemo-0000.ckdemo.sewestus.com \
+-u Administrator -p password -b default \
+-e true -ks ~/.keystore -kp password
 
 Connection created.
 ...............
 *****************************************************************
-Time elapsed: 1785 ms
-Average Throughput: 560 ops/sec
-Average Latency: 1.78 ms
+Time elapsed: 12935 ms
+Average Throughput: 773 ops/sec
+Average Latency: 1.29 ms
 *****************************************************************
 ```
-In order to learn more about the arguments used, please follow the [README](https://github.com/sahnianuj/cb-loadgen) file.
+
+
+You can connect to the UI and click ```default``` bucket to confirm 1000s of documents written there.
+
+![](./cb-operator-guide/assets/default-bucket.png)
+Figure 2: Default bucket after ```cbloadgen``` client app run.
 
 **Note**: There could be a significant network latency between your laptop and Amazon EKS cluster so please take performance numbers with a grain of salt.
 
@@ -682,12 +834,12 @@ pod "ckdemo-0001" deleted
 
 ```
 ![](./cb-operator-guide/assets/server-dropped.png)
-Figure 2: One of the Data pod is dropped.
+Figure 3: One of the Data pod is dropped.
 
 After Couchbase Autonomous Operator detects the failure it triggers the healing process.
 
 ![](./cb-operator-guide/assets/server-recovered.png)
-Figure 3: Data node with same name and persistent volume will be restored automatically.
+Figure 4: Data node with same name and persistent volume will be restored automatically.
 
 ### 5.2. On-Demand Scaling - Up & Down
 
@@ -763,7 +915,7 @@ couchbase-operator-f6f7b6f75-pzb9m              1/1       Running    0          
   After pod is ready you can view it from the Web Console as well.
 
   ![](./cb-operator-guide/assets/scaled-out.png)
-  Figure 4: Cluster now has three Couchbase server pods hosting Index and Query services spread across three server-groups.
+  Figure 5: Cluster now has three Couchbase server pods hosting Index and Query services spread across three server-groups.
 
 ```
 
@@ -874,6 +1026,157 @@ ckdemo-0009-exposed-ports      LoadBalancer   10.100.156.109   ad2fcf7c1c9cd11e9
 ```
 
 Refreshing external-ip is not a desired behavior from Couchbase client perspective and in later section we will describe how you can add ```externalDNS``` in front of your EKS cluster so that there is no impact of IP being changed as client code will use Fully Qualified Domain Names (FQDN) instead.
+
+### 5.4. Backing up and Restoring a Couchbase Deployment
+
+The Couchbase Autonomous Operator automatically repairs and rebalances Couchbase clusters to maintain high availability. It is considered best practice to regularly backup your data, and also test restoring it works as expected before disaster recovery is required.
+
+This functionality is not provided by the Operator and left to the cluster administrator to define backup policies and test data restoration. This section describes some common patterns that may be employed to perform the required functions.
+
+
+#### 5.4.1. Backing Up
+
+The Kubernetes resource definitions below illustrate a typical arrangement for backup that saves the state of the entire cluster.
+
+```
+# Define backup storage volume
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: couchbase-cluster-backup
+spec:
+  resources:
+    requests:
+      storage: 100Gi
+  storageClassName: standard
+  accessModes:
+    - ReadWriteOnce
+```
+
+A persistent volume is claimed in order to keep data safe in the event of an outage. You will need to plan the claim size based on your expected data set size, the number of days data retention and whether incremental backups are used at all.
+
+```
+# Create a backup repository
+kind: Job
+apiVersion: batch/v1
+metadata:
+  name: couchbase-cluster-backup-create
+spec:
+  template:
+    spec:
+      containers:
+        - name: couchbase-cluster-backup-create
+          image: couchbase/server:enterprise-6.0.2
+          command: ["cbbackupmgr", "config", "--archive", "/backups", "--repo", "demo"]
+          volumeMounts:
+            - name: "couchbase-cluster-backup-volume"
+              mountPath: "/backups"
+      volumes:
+        - name: couchbase-cluster-backup-volume
+          persistentVolumeClaim:
+            claimName: couchbase-cluster-backup
+      restartPolicy: Never
+```      
+
+A job is created to mount the persistent volume and initialize a backup repository. The repository is named `demo` which will map to the cluster name in later specifications.
+
+```
+kind: CronJob
+apiVersion: batch/v1beta1
+metadata:
+  name: couchbase-cluster-backup
+spec:
+  schedule: "0 3 * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+            - name: couchbase-cluster-backup-full
+              image: couchbase/server:enterprise-6.0.2
+              command: ["cbbackupmgr", "backup", "--archive", "/backups", "--repo", "demo", "--cluster", "couchbase://cb-gke-emart.emart.svc", "--username", "Administrator", "--password", "password"]
+              volumeMounts:
+                - name: "couchbase-cluster-backup-volume"
+                  mountPath: "/backups"
+          volumes:
+            - name: couchbase-cluster-backup-volume
+              persistentVolumeClaim:
+                claimName: couchbase-cluster-backup
+          restartPolicy: Never
+```
+
+A backup cron job runs daily at a time that had low cluster utilization. The first time it runs a full backup is taken, for other runs an incremental backup is run to save disk space.
+
+```
+kind: Job
+apiVersion: batch/v1
+metadata:
+  name: couchbase-cluster-backup-merge
+spec:
+  spec:
+    template:
+      spec:
+        containers:
+          - name: couchbase-cluster-backup-prune
+            image: couchbase/server:enterprise-6.0.2
+            command: ["cbbackupmgr", "merge", "--archive", "/backups", "--repo", "demo", "--start", "2018-07-25T13_02_45.92773833Z", "--end", "2020-07-25T14_57_57.83339572Z"]
+            volumeMounts:
+              - name: "couchbase-cluster-backup-volume"
+                mountPath: "/backups"
+        volumes:
+         - name: couchbase-cluster-backup-volume
+            persistentVolumeClaim:
+              claimName: couchbase-cluster-backup
+        restartPolicy: Never
+```
+
+A merge job should be run periodically to compact full and incremental backups into a single full backup. This step will reduce disk utilization.
+
+
+#### 5.4.2. Restoring
+
+Much like a backup we can restore data to a new Couchbase cluster with a Kubernetes Job.
+
+```
+kind: Job
+apiVersion: batch/v1
+metadata:
+  name: couchbase-cluster-restore
+spec:
+  template:
+    spec:
+      containers:
+        - name: couchbase-cluster-restore
+          image: couchbase/server:enterprise-6.0.2
+          command: ["cbbackupmgr", "restore", "--archive", "/backups", "--repo", "demo", "--cluster", "couchbase://couchbase.emart.svc", "--username", "Administrator", "--password", "password"]
+          volumeMounts:
+            - name: "couchbase-cluster-backup-volume"
+              mountPath: "/backups"
+      volumes:
+        - name: couchbase-cluster-backup-volume
+          persistentVolumeClaim:
+            claimName: couchbase-cluster-backup
+      restartPolicy: Never
+```      
+
+### 5.5. Cleanup
+
+After lab is done delete EKS cluster and every other resource deployed during the setup.
+
+```
+$ eksctl delete cluster --name=xyzEKS
+
+[ℹ]  using region us-east-1
+[ℹ]  deleting EKS cluster "xyzEKS"
+[✔]  kubeconfig has been updated
+[ℹ]  cleaning up LoadBalancer services
+[ℹ]  2 sequential tasks: { delete nodegroup "standard-workers", delete cluster control plane "EKS" [async] }
+[ℹ]  will delete stack "eksctl-xyzEKS-nodegroup-standard-workers"
+[ℹ]  waiting for stack "eksctl-xyzEKS-nodegroup-standard-workers" to get deleted
+[ℹ]  will delete stack "eksctl-xyzEKS-cluster"
+[✔]  all cluster resources were deleted
+
+```
 
 # 6. Conclusion
 
