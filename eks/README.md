@@ -76,7 +76,8 @@ $ eksctl create cluster \
 --nodes 3 \
 --nodes-min 3 \
 --nodes-max 6 \
---node-ami auto
+--node-ami auto \
+--vpc-cidr 172.16.0.0/24
 
 [ℹ]  using region us-east-1
 [ℹ]  setting availability zones to [us-east-1c us-east-1b]
