@@ -81,7 +81,7 @@ type $CBBACKUPMGR >/dev/null 2>&1 || {
 ############## STEP 1 : BACKUP
 echo "---------------------------------------------------------"
 echo  BEGIN STEP 1: BACKUP : "$(date)"
-CMD="${CBBACKUPMGR} backup  --archive $ARCHIVE --repo $REPO --cluster couchbase://${CLUSTER} --username $CB_USERNAME --password $CB_PASSWORD --threads ${THREADS}"
+CMD="${CBBACKUPMGR} backup  --archive $ARCHIVE --repo $REPO --cluster couchbase://${CLUSTER} --username $CB_USERNAME --password '$CB_PASSWORD' --threads ${THREADS}"
 echo -e "Running backup... \n Command:  $CMD"
 eval "$CMD"
 
