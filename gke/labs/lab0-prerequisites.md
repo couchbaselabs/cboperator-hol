@@ -160,8 +160,8 @@ Cloud SDK runs on Linux, macOS, and Windows. Cloud SDK requires Python. Supporte
     ./google-cloud-sdk/install.sh
     ```
 
-    ![Google SDK Install1](./assets/google-sdk-install1.png)
-    ![Google SDK Install2](./assets/google-sdk-install2.png)
+    ![Google SDK Install1](./assets/google-sdk-install3.png)
+    ![Google SDK Install2](./assets/google-sdk-install4.png)
 
     Restart your terminal for the changes to take effect.
 
