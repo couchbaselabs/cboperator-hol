@@ -55,9 +55,9 @@ Run Windows PowerShell as Administrator and execute the following commands:
 ```bash
 > Set-ExecutionPolicy -ExecutionPolicy Unrestricted -Scope CurrentUser -Force
 > Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force
-Name                           Version          Source           Summary
-----                           -------          ------           -------
-nuget                          2.8.5.208        https://onege... NuGet provider for the OneGet meta-package manager
+Name      Version      Source           Summary
+----      -------      ------           -------
+nuget     2.8.5.208    https://onege... NuGet provider for the OneGet meta-package manager
 > Install-Script -Name install-kubectl -Scope CurrentUser -Force
 > install-kubectl.ps1 -DownloadLocation C:\YOUR_PATH
 ==>Getting download link from  https://kubernetes.io/docs/tasks/tools/install-kubectl/
@@ -114,7 +114,7 @@ Mode                LastWriteTime     Length Name
 -a---        02/04/2019   4:43 PM          0 config
 ```
 
-Check kubectl version in a terminal to make sure it successfully installed:
+Check kubectl version in a terminal to make sure it is successfully installed:
 
 ```bash
 > kubectl version
@@ -163,7 +163,7 @@ Cloud SDK runs on Linux, macOS, and Windows. Cloud SDK requires Python. Supporte
     ![Google SDK Install1](./assets/google-sdk-install3.png)
     ![Google SDK Install2](./assets/google-sdk-install4.png)
 
-    Restart your terminal for the changes to take effect.
+    > Restart your terminal for the changes to take effect.
 
     Alternatively, you can call Cloud SDK after extracting the downloaded archive by invoking its executables via the full path.
 

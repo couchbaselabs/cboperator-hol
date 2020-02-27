@@ -1,0 +1,118 @@
+apiVersion: couchbase.com/v1
+kind: CouchbaseCluster
+metadata:
+  name: cb-gke-demo1
+spec:
+  baseImage: couchbase/server
+  version: enterprise-6.0.1
+  authSecret: cb-example-auth
+  exposeAdminConsole: true
+  adminConsoleServices:
+    - data
+  exposedFeatures:
+    - xdcr
+    - client
+  exposedFeatureServiceType: NodePort
+  softwareUpdateNotifications: true
+  disableBucketManagement: true
+  cluster:
+    clusterName: cb-gke-demo1
+    dataServiceMemoryQuota: 1024
+    indexServiceMemoryQuota: 1024
+    searchServiceMemoryQuota: 256
+    eventingServiceMemoryQuota: 256
+    analyticsServiceMemoryQuota: 1024
+    indexStorageSetting: plasma
+    autoFailoverTimeout: 10
+    autoFailoverMaxCount: 3
+    autoFailoverOnDataDiskIssues: true
+    autoFailoverOnDataDiskIssuesTimePeriod: 120
+    autoFailoverServerGroup: false
+  buckets:
+    - name: demo
+      type: couchbase
+      memoryQuota: 128
+      replicas: 1
+      ioPriority: high
+      evictionPolicy: valueOnly
+      conflictResolution: seqno
+      enableFlush: true
+      enableIndexReplica: false
+      compressionMode: passive
+  servers:
+    - name: data-us-central1-a
+      size: 1
+      services:
+        - data
+      serverGroups:
+       - us-central1-a
+      pod:
+        volumeMounts:
+          default: pvc-default 	# /opt/couchbase/var/lib/couchbase
+          data: pvc-data    	# /mnt/data
+    - name: data-us-central1-b
+      size: 1
+      services:
+        - data
+      serverGroups:
+       - us-central1-b
+      pod:
+        volumeMounts:
+          default: pvc-default # /opt/couchbase/var/lib/couchbase
+          data: pvc-data
+    - name: data-us-central1-c
+      size: 1
+      services:
+        - data
+      serverGroups:
+       - us-central1-c
+      pod:
+        volumeMounts:
+          default: pvc-default   # /opt/couchbase/var/lib/couchbase
+          data: pvc-data
+    - name: qi-us-central1-a
+      size: 1
+      services:
+        - query
+        - index
+      serverGroups:
+       - us-central1-a
+      pod:
+        volumeMounts:
+          default: pvc-default    # /opt/couchbase/var/lib/couchbase
+          index: pvc-index        # /mnt/data
+    - name: qi-us-central1-b
+      size: 1
+      services:
+        - index
+        - query
+      serverGroups:
+       - us-central1-b
+      pod:
+        volumeMounts:
+          default: pvc-default  # /opt/couchbase/var/lib/couchbase
+          index: pvc-index      # /mnt/index
+  securityContext:
+    fsGroup: 1000
+  volumeClaimTemplates:
+    - metadata:
+        name: pvc-default
+      spec:
+        storageClassName: cb-sc-demo1
+        resources:
+          requests:
+            storage: 1Gi
+    - metadata:
+        name: pvc-data
+      spec:
+        storageClassName: cb-sc-demo1
+        resources:
+          requests:
+            storage: 5Gi
+    - metadata:
+        name: pvc-index
+      spec:
+        storageClassName: cb-sc-demo1
+        resources:
+          requests:
+            storage: 3Gi
