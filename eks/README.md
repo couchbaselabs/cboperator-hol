@@ -81,9 +81,9 @@ $ eksctl create cluster \
 
 [ℹ]  using region us-east-1
 [ℹ]  setting availability zones to [us-east-1c us-east-1b]
-[ℹ]  subnets for us-east-1a - public:192.168.0.0/19 private:192.168.96.0/19
-[ℹ]  subnets for us-east-1b - public:192.168.32.0/19 private:192.168.128.0/19
-[ℹ]  subnets for us-east-1c - public:192.168.64.0/19 private:192.168.160.0/19
+[ℹ]  subnets for us-east-1a - public:172.16.0.0/27 private:172.16.0.96/27
+[ℹ]  subnets for us-east-1b - public:172.16.0.32/27 private:172.16.0.128/27
+[ℹ]  subnets for us-east-1c - public:172.16.0.64/27 private:172.16.0.160/27
 [ℹ]  nodegroup "standard-workers" will use "ami-08739803f18dcc019" [AmazonLinux2/1.14]
 [ℹ]  using Kubernetes version 1.14
 [ℹ]  creating EKS cluster "xyzEKS" in "us-east-1" region
@@ -100,9 +100,9 @@ $ eksctl create cluster \
 [ℹ]  nodegroup "standard-workers" has 0 node(s)
 [ℹ]  waiting for at least 3 node(s) to become ready in "standard-workers"
 [ℹ]  nodegroup "standard-workers" has 3 node(s)
-[ℹ]  node "ip-192-168-13-57.ec2.internal" is ready
-[ℹ]  node "ip-192-168-46-117.ec2.internal" is ready
-[ℹ]  node "ip-192-168-76-24.ec2.internal" is ready
+[ℹ]  node "ip-172-16-0-25.ec2.internal" is ready
+[ℹ]  node "ip-172-16-0-42.ec2.internal" is ready
+[ℹ]  node "ip-172-16-0-76.ec2.internal" is ready
 [✔]  EKS cluster "xyzEKS" in "us-east-1" region is ready
 ```
 
