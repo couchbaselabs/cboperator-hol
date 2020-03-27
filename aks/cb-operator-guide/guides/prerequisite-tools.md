@@ -1,4 +1,4 @@
-# Prerequisite
+# Prerequisites
 
 In this section, you will perform the necessary steps to install and configure the prerequisite tools required to interact with kubernetes cluster deployed on Azure. Follow the steps below and reach out for help if you get stuck. You can skip any step if you already have the corresponding tool(s) installed on your computer.
 
@@ -20,31 +20,32 @@ Please follow the below steps to install `kubectl` uisng [Homebrew](https://brew
 
 1. Run the installation command:
 
-	```
+	```bash
 	brew install kubernetes-cli
 	```
 
 2. Test to ensure the version you installed is up-to-date:
 
-	```
+	```bash
 	kubectl version
 	```
-	
+
 	If `kubectl` is installed successfully, then you should see the below output.
-	
-	```
+
+	```bash
 	Client Version: version.Info{Major:"1", Minor:"15", GitVersion:"v1.15.2",   
 	GitCommit:"f6278300bebbb750328ac16ee6dd3aa7d3549568", GitTreeState:"clean",
 	BuildDate:"2019-08-05T16:54:35Z", GoVersion:"go1.12.7", Compiler:"gc", Platform:"darwin/
 	amd64"}
 	```
-	
+
 ### Windows - Download kubectl.exe
+
 1. Download the kubectl.exe binary from here: [kubectl 1.13.0 binary for Windows](https://storage.googleapis.com/kubernetes-release/release/v1.13.0/bin/windows/amd64/kubectl.exe). Put the kubectl.exe file in any directory of your choice on your computer, e.g. ```C:\kubectl```.
 
 2. Modify/edit your PATH environment variable to include the path where you put kubectl.exe, e.g., C:\kubectl. Use the Environment Variables dialog box (Control Panel → System → Advanced system settings → Environment Variables) to change the PATH variable permanently or use the terminal as shown below to change the PATH variable for the duration of the session:
 
-	```
+	```bash
 	> set PATH=%PATH%;C:\kubectl
 	```
 	
@@ -58,23 +59,23 @@ Please follow the below steps to install `Azure CLI` uisng [Homebrew](https://br
 
 You can install the CLI by updating your brew repository information, and then running the `install` command:
 
-```
+```bash
 brew update && brew install azure-cli
 ```
 
 > **Note:** The Azure CLI has a dependency on the python3 package in Homebrew, and will install it on your system, even if Python 2 is available. The Azure CLI is guaranteed to be compatible with the latest version of python3 published on Homebrew.
- 
+
 You can then run the Azure CLI with the az command. To sign in, use [az login](https://docs.microsoft.com/en-us/cli/azure/reference-index#az-login) command.
 
 1. Run the login command.
 
-	```
+	```bash
 	az login
 	```
-	
+
 	If the CLI can open your default browser, it will do so and load a sign-in page.
 
-	Otherwise, you need to open a browser page and follow the instructions on the command line to enter an 	authorization code after navigating to [https://aka.ms/devicelogin](https://aka.ms/devicelogin) in your browser.
+	Otherwise, you need to open a browser page and follow the instructions on the command line to enter an authorization code after navigating to [https://aka.ms/devicelogin](https://aka.ms/devicelogin) in your browser.
 
 2. Sign in with your account credentials in the browser.
 
@@ -90,8 +91,8 @@ You can now run the Azure CLI with the `az` command from either Windows Command 
 
 1. Run the login command.
 
-	```
+	```bash
 	az login
 	```
-	
+
 2. Sign in with your account credentials in the browser.

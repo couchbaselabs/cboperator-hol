@@ -1,3 +1,5 @@
+.idea
+aks/.idea
 _book
 node_modules
 .apdisk
@@ -8,3 +10,4 @@ node_modules
 Thumbs.db
 thumbs.db
 *.md-e
+.python-version
