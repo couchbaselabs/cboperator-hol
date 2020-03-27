@@ -245,7 +245,7 @@ You can either open Cloud Shell using the `>_` button on the top of the Azure po
 
 # Deploy Couchbase Autonomous Operator
 
->**Note:** If you are using Autonomous Operator version 2.0, then follow the steps from [Deploy Operator 2.0](./../cb-operator-guide/guides/cb-op-2.0-setup.md). Once the Operator is deployed, you can then go to the next step to [Deploy the Couchbase cluster](#deploy-the-couchbase-cluster-in-aks).
+>**Note:** If you are using Autonomous Operator version 2.0, then follow the steps from [Deploy Operator 2.0](./../aks/cb-operator-guide/guides/cb-op-2.0-setup.md). Once the Operator is deployed, you can then go to the next step to [Deploy the Couchbase cluster](#deploy-the-couchbase-cluster-in-aks).
 
 The Couchbase Autonomous Operator for Kubernetes enables cloud portability and automates operational best practices for deploying and managing Couchbase.
 
