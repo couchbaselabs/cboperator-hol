@@ -1,0 +1,30 @@
+apiVersion: couchbase.com/v2
+kind: CouchbaseUser
+metadata:
+  name: sync-gateway
+  labels:
+    cluster: my-cluster
+spec:
+  authDomain: local
+  authSecret: sync-gateway
+---
+apiVersion: couchbase.com/v2
+kind: CouchbaseGroup
+metadata:
+  name: sync-gateway
+spec:
+  roles:
+  - name: bucket_full_access
+    bucket: default
+---
+apiVersion: couchbase.com/v2
+kind: CouchbaseRoleBinding
+metadata:
+  name: sync-gateway
+spec:
+  subjects:
+  - kind: CouchbaseUser
+    name: sync-gateway
+  roleRef:
+    kind: CouchbaseGroup
+    name: sync-gateway

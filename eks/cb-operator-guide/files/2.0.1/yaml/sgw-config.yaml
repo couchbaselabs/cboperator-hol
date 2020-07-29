@@ -1,0 +1,59 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: sync-gateway
+stringData:
+  config.json: |-
+    {
+      "Interface": ":4984",
+      "AdminInterface": ":4985",
+      "CORS": {
+              "Origin":["*"],
+              "LoginOrigin":["*"],
+              "Headers":["Content-Type"],
+              "MaxAge": 1728000
+      },
+      "log": ["*"],
+      "logging": {
+        "console": {
+          "enabled": true,
+          "log_level": "info",
+          "log_keys": [
+            "*"
+          ]
+        }
+      },
+      "databases": {
+        "cbdemo": {
+          "server": "couchbase://cbdemo-srv.cbdb.svc.cluster.local",
+          "bucket": "staging",
+          "username": "newton",
+          "password": "password",
+          "allow_conflicts": false,
+          "revs_limit": 20,
+          "enable_shared_bucket_access": true,
+          "import_docs": true,
+          "sync": `function(doc, oldDoc) {
+                      channel(doc.channels);
+                  }`,
+          "users": {
+              "GUEST": {
+                  "name": "",
+                  "admin_channels": ["*"],
+                  "all_channels": null,
+                  "disabled": true
+              },
+              "admin": {
+                  "name": "admin",
+                  "admin_channels": ["*"],
+                  "password": "password"
+              },
+              "newton": {
+                  "name": "newton",
+                  "admin_channels": ["newton"],
+                  "password": "password"
+              }
+          }
+        }
+      }
+    }

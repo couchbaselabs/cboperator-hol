@@ -1,0 +1,120 @@
+apiVersion: couchbase.com/v2
+kind: CouchbaseCluster
+metadata:
+  name: cbdemo-lb
+spec:
+  image: couchbase/server:6.0.4
+  antiAffinity: true
+  authSecret: cb-admin-auth
+  securityContext:
+    runAsUser: 1000
+    runAsNonRoot: true
+    fsGroup: 1000
+  cluster:
+    dataServiceMemoryQuota: 6.4Gi #80% of 8GB
+    indexServiceMemoryQuota: 12.8Gi #80% of 16GB
+    searchServiceMemoryQuota: 2.5Gi
+    eventingServiceMemoryQuota: 2.5Gi
+    analyticsServiceMemoryQuota: 2.5Gi
+    indexStorageSetting: plasma
+    autoFailoverTimeout: 10s
+    autoFailoverMaxCount: 3
+    autoFailoverOnDataDiskIssues: true
+    autoFailoverOnDataDiskIssuesTimePeriod: 60s
+    autoFailoverServerGroup: false
+    autoCompaction:
+      databaseFragmentationThreshold:
+        percent: 30
+        size: 1Gi
+      viewFragmentationThreshold:
+        percent: 30
+        size: 1Gi
+      parallelCompaction: false
+      timeWindow:
+        start: 02:00
+        end: 06:00
+        abortCompactionOutsideWindow: true
+      tombstonePurgeInterval: 72h
+  security:
+    adminSecret: cb-admin-auth
+    rbac:
+      managed: false
+    ldap:
+      hosts:
+      - ldap.forumsys.com
+      port: 389
+      bindDN: "cn=read-only-admin,dc=example,dc=com"
+      bindSecret: cb-admin-auth
+      authenticationEnabled: true
+      userDNMapping:
+        template: "uid=%u,dc=example,dc=com"
+      authorizationEnabled: false
+      groupsQuery: "(&(objectclass=groupOfUniqueNames)(uniquemember=uid=%u,dc=example,dc=com))"
+      nestedGroupsEnabled: false
+  networking:
+    exposeAdminConsole: true
+    adminConsoleServices:
+    - data
+    - query
+    adminConsoleServiceType: NodePort
+    exposedFeatures:
+    - xdcr
+    - client
+    exposedFeatureServiceType: LoadBalancer
+    exposedFeatureTrafficPolicy: Local
+    tls:
+      static:
+        serverSecret: couchbase-server-tls
+        operatorSecret: couchbase-operator-tls
+    dns:
+      domain: anuj.balajiacloud.guru
+  buckets:
+    managed: false
+  xdcr:
+    managed: false
+  servers:
+    - name: data-service
+      size: 2
+      services:
+        - data
+      volumeMounts:
+        default: pvc-default 	# /opt/couchbase/var/lib/couchbase
+        data: pvc-data	# /mnt/data
+      pod:
+        spec:
+          nodeSelector:
+            beta.kubernetes.io/instance-type: m5.large
+    - name: index-quer-service
+      size: 2
+      services:
+        - index
+        - query
+      volumeMounts:
+        default: pvc-default
+        index: pvc-index
+      pod:
+        spec:
+          nodeSelector:
+            beta.kubernetes.io/instance-type: m5.xlarge
+  volumeClaimTemplates:
+    - metadata:
+        name: pvc-default
+      spec:
+        storageClassName: nas
+        resources:
+          requests:
+            storage: 1Gi
+    - metadata:
+        name: pvc-data
+      spec:
+        storageClassName: nas
+        resources:
+          requests:
+            storage: 2Gi
+    - metadata:
+        name: pvc-index
+      spec:
+        storageClassName: nas
+        resources:
+          requests:
+            storage: 3Gi

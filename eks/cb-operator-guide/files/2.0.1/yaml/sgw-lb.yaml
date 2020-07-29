@@ -1,0 +1,17 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: sgw-lb
+spec:
+  type: LoadBalancer
+  selector:
+    app: sync-gateway
+  ports:
+  - name: http
+    protocol: TCP
+    port: 4984
+    targetPort: 4984
+  - name: http2
+    protocol: TCP
+    port: 4985
+    targetPort: 4985

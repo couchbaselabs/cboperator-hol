@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sync-gateway
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: sync-gateway
+  template:
+    metadata:
+      labels:
+        app: sync-gateway
+    spec:
+      containers:
+      - name: sync-gateway
+        image: couchbase/sync-gateway:2.7.3-enterprise
+        volumeMounts:
+        - name: config
+          mountPath: /etc/sync_gateway
+          readOnly: true
+        env:
+        - name: GOMAXPROCS
+          value: "1"
+      volumes:
+      - name: config
+        secret:
+          secretName: sync-gateway
