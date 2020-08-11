@@ -22,94 +22,7 @@ a Couchbase cluster. If you have done this already you can skip the correspondin
 steps. It is just important to specify the correct namespace and Couchbase cluster
 name in the configuration files.
 
-## 3. Installing Prometheus Operator
-
-Check if the default charts repository is in the list:
-```
-helm repo list
-```
-
-If not add it:
-```
-helm repo add stable https://kubernetes-charts.storage.googleapis.com
-```
-
-We will install the Prometheus Operator in the namespace `prometheus` and
-also use `prometheus` as the helm release name. You can freely choose other
-names and use them consistently in the next steps.
-
-```
-kubectl create namespace prometheus
-
-helm install -n prometheus prometheus stable/prometheus-operator
-```
-
-Let's check the services installed by the operator:
-```
-kubectl -n prometheus get svc
-NAME                                      TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)                      AGE
-alertmanager-operated                     ClusterIP   None             <none>        9093/TCP,9094/TCP,9094/UDP   96s
-prometheus-grafana                        ClusterIP   10.100.98.138    <none>        80/TCP                       108s
-prometheus-kube-state-metrics             ClusterIP   10.100.255.239   <none>        8080/TCP                     108s
-prometheus-operated                       ClusterIP   None             <none>        9090/TCP                     86s
-prometheus-prometheus-node-exporter       ClusterIP   10.100.158.168   <none>        9100/TCP                     108s
-prometheus-prometheus-oper-alertmanager   ClusterIP   10.100.91.246    <none>        9093/TCP                     108s
-prometheus-prometheus-oper-operator       ClusterIP   10.100.80.42     <none>        8080/TCP,443/TCP             108s
-prometheus-prometheus-oper-prometheus     ClusterIP   10.100.128.70    <none>        9090/TCP                     108s
-```
-
-## 4. Accessing Prometheus Services
-
-To access the Prometheus and Graphana UI we can setup port forwarding for the
-corresponding services (note the service names include the helm release name):
-
-```
-kubectl --namespace prometheus port-forward svc/prometheus-prometheus-oper-prometheus 9090 &
-kubectl --namespace prometheus port-forward svc/prometheus-grafana 3000:80
-```
-
-Open Prometheus UI over http://localhost:9090/
-
-To login into Graphana you will need admin password. It can be extracted by executing:
-
-```
-kubectl -n prometheus get secret prometheus-grafana -o jsonpath="{.data.admin-password}" | base64 --decode ; echo
-prom-operator
-```
-
-Open http://localhost:3000/ in the browser and login as `admin/prom-operator`
-
-In an EKS deployment, we can easily enable access to the Prometheus services
-over public DNS names by changing the service type to LoadBalancer.
-
-To access the Prometheus, edit the service (note the service name includes
-the helm release name):
-
-```
-kubectl -n prometheus edit svc prometheus-prometheus-oper-prometheus
-```
-Change the service type to `LoadBalancer`
-
-```
-  type: LoadBalancer
-```
-
-Check the generated DNS:
-```
-kubectl -n prometheus get svc prometheus-prometheus-oper-prometheus
-... some-generated-id.eu-central-1.elb.amazonaws.com   9090:32231/TCP ...
-```
-
-Open http://some-generated-id.eu-central-1.elb.amazonaws.com:9090/ in the browser
-
-Do the same to access the Grafana by changing the Grafana service type to
-LoadBalancer:
-
-```
-kubectl -n prometheus edit svc prometheus-grafana
-```
-
-## 5. Installing Couchbase Autonomous Operator
+## 3. Installing Couchbase Autonomous Operator
 
 Download and unpack the Autonomous Operator for your operating system.
 Click here for
@@ -126,7 +39,7 @@ kubectl create namespace demo
 bin/cbopcfg --namespace demo | kubectl -n demo create -f -
 ```
 
-## 6. Installing Couchbase Cluster with the Metrics Exporter
+## 4. Installing Couchbase Cluster with the Metrics Exporter
 
 Create a file `demo-couchbase-cluster.yaml` with the configuration of
 the Couchbase cluster. Here we deploy 3-node cluster named `demo` in
@@ -240,7 +153,94 @@ kubectl --namespace demo port-forward svc/couchbase-metrics 9091
 ```
 
 Now if you open http://localhost:9091/metrics, you should see a list of Couchbase
-metrics exported in the format expected by Prometheus.  
+metrics exported in the format expected by Prometheus.
+
+## 5. Installing Prometheus Operator
+
+Check if the default charts repository is in the list:
+```
+helm repo list
+```
+
+If not add it:
+```
+helm repo add stable https://kubernetes-charts.storage.googleapis.com
+```
+
+We will install the Prometheus Operator in the namespace `prometheus` and
+also use `prometheus` as the helm release name. You can freely choose other
+names and use them consistently in the next steps.
+
+```
+kubectl create namespace prometheus
+
+helm install -n prometheus prometheus stable/prometheus-operator
+```
+
+Let's check the services installed by the operator:
+```
+kubectl -n prometheus get svc
+NAME                                      TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)                      AGE
+alertmanager-operated                     ClusterIP   None             <none>        9093/TCP,9094/TCP,9094/UDP   96s
+prometheus-grafana                        ClusterIP   10.100.98.138    <none>        80/TCP                       108s
+prometheus-kube-state-metrics             ClusterIP   10.100.255.239   <none>        8080/TCP                     108s
+prometheus-operated                       ClusterIP   None             <none>        9090/TCP                     86s
+prometheus-prometheus-node-exporter       ClusterIP   10.100.158.168   <none>        9100/TCP                     108s
+prometheus-prometheus-oper-alertmanager   ClusterIP   10.100.91.246    <none>        9093/TCP                     108s
+prometheus-prometheus-oper-operator       ClusterIP   10.100.80.42     <none>        8080/TCP,443/TCP             108s
+prometheus-prometheus-oper-prometheus     ClusterIP   10.100.128.70    <none>        9090/TCP                     108s
+```
+
+## 6. Accessing Prometheus Services
+
+To access the Prometheus and Graphana UI we can setup port forwarding for the
+corresponding services (note the service names include the helm release name):
+
+```
+kubectl --namespace prometheus port-forward svc/prometheus-prometheus-oper-prometheus 9090 &
+kubectl --namespace prometheus port-forward svc/prometheus-grafana 3000:80
+```
+
+Open Prometheus UI over http://localhost:9090/
+
+To login into Graphana you will need admin password. It can be extracted by executing:
+
+```
+kubectl -n prometheus get secret prometheus-grafana -o jsonpath="{.data.admin-password}" | base64 --decode ; echo
+prom-operator
+```
+
+Open http://localhost:3000/ in the browser and login as `admin/prom-operator`
+
+In an EKS deployment, we can easily enable access to the Prometheus services
+over public DNS names by changing the service type to LoadBalancer.
+
+To access the Prometheus, edit the service (note the service name includes
+the helm release name):
+
+```
+kubectl -n prometheus edit svc prometheus-prometheus-oper-prometheus
+```
+Change the service type to `LoadBalancer`
+
+```
+  type: LoadBalancer
+```
+
+Check the generated DNS:
+```
+kubectl -n prometheus get svc prometheus-prometheus-oper-prometheus
+... some-generated-id.eu-central-1.elb.amazonaws.com   9090:32231/TCP ...
+```
+
+Open http://some-generated-id.eu-central-1.elb.amazonaws.com:9090/ in the browser
+
+Do the same to access the Grafana by changing the Grafana service type to
+LoadBalancer:
+
+```
+kubectl -n prometheus edit svc prometheus-grafana
+```
 
 ## 7. Exposing Couchbase Metrics in Prometheus
 
