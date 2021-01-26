@@ -63,6 +63,10 @@ spec:
     managed: false
   xdcr:
     managed: false
+#  monitoring:
+#    prometheus:
+#      enabled: true
+#      image: couchbase/exporter:1.0.2
   servers:
     - name: data-service-2a
       size: 1
