@@ -1,0 +1,82 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: sgw-service
+  labels:
+    app: sync-gateway
+spec:
+  type: "ClusterIP"
+  selector:
+    app: sync-gateway
+  ports:
+    - name: http
+      protocol: TCP
+      targetPort: 4984
+      port: 4984
+    - name: http2
+      protocol: TCP
+      targetPort: 4985
+      port: 4985
+
+# ##  Deploy SGW Service with LoadBalancer and register it to external DNS ##
+# apiVersion: v1
+# kind: Service
+# metadata:
+#   name: sgw-service
+#   annotations:
+#     external-dns.alpha.kubernetes.io/hostname: sgw.dev.pge.cbdbdemo.com
+# spec:
+#   type: LoadBalancer
+#   selector:
+#     app: sync-gateway
+#   ports:
+#   - name: http
+#     protocol: TCP
+#     targetPort: 4984
+#     port: 4984
+#   - name: http2
+#     protocol: TCP
+#     targetPort: 4985
+#     port: 4985
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: sync-gateway
+spec:
+  replicas: 2
+  serviceName: sgw-service
+  selector:
+    matchLabels:
+      app: sync-gateway
+  template:
+    metadata:
+      labels:
+        app: sync-gateway
+    spec:
+      containers:
+      - name: sync-gateway
+        image: couchbase/sync-gateway:2.8.0-enterprise
+        volumeMounts:
+        - name: config
+          mountPath: /etc/sync_gateway
+          readOnly: true
+        - name: sgw-pv
+          mountPath: "/var/log"
+        env:
+        - name: GOMAXPROCS
+          value: "1"
+      volumes:
+      - name: config
+        secret:
+          secretName: sync-gateway
+  volumeClaimTemplates:
+    - metadata:
+        name: sgw-pv
+      spec:
+        storageClassName: nas
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 5Gi
