@@ -13,10 +13,10 @@ namespace/apps created
 
 ## 2. Deploy Application Pod
 
-Create the application pod based on the manifestation file [app_pod.yaml](../files/app-pod.yaml)
+Create the application pod based on the manifestation file [app-centos-pod.yaml](../files/app-centos-pod.yaml)
 
 ```
-$ kubectl create -f app-pod.yaml --namespace apps
+$ kubectl create -f app-centos-pod.yaml --namespace apps
 pod/app01 created
 ```
 
@@ -42,33 +42,26 @@ root@client-app:/#
 And then install following list of packages in the pod:
 
 ```
-$ apt-get -y update
-$ apt-get install -y wget
-$ apt-get install -y git
-$ apt-get -y install curl
+yum update -y
+yum install -y wget
+yum install -y git
+yum install -y curl
 
 #install nslookup
-$ apt-get -y install dnsutils
+yum install -y bind-utils
 
 #Install Java
-$ apt-get install software-properties-common
-$ add-apt-repository ppa:jonathonf/openjdk
-$ apt-get update
-$ apt-get install openjdk-8-jre
-
-# Set Latest Java Version
-$ update-java-alternatives -l
-$ update-java-alternatives -s /usr/lib/jvm/java-1.8.0-openjdk-amd64
+yum install -y java-11-openjdk
 
 ```
 
 Please follow the prompts carefully and copy/paste the paths where required. Once all of the above packages are installed verify the JRE version to be 1.8 or above:
 
 ```
-$java -version
+java -version
 
-openjdk version "1.8.0_222"
-OpenJDK Runtime Environment (build 1.8.0_222-8u222-b10-1ubuntu2~14.04.york0-b10)
-OpenJDK 64-Bit Server VM (build 25.222-b10, mixed mode)   
+openjdk version "11.0.10" 2021-01-19 LTS
+OpenJDK Runtime Environment 18.9 (build 11.0.10+9-LTS)
+OpenJDK 64-Bit Server VM 18.9 (build 11.0.10+9-LTS, mixed mode, sharing)   
 ```
 In actual production environment you would just be pulling your pod image where all the required libraries will be installed, including JDK/JRE.
