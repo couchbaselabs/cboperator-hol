@@ -13,7 +13,7 @@ _usage()
    echo -e "Options:"
    echo -e "	-c  <s>  Couchbase Cluster name used in the couchbase-cluster.yaml file (default: cb-example)"
    echo -e "	-n  <s>  Namespace where cluster is deployed (default: default)"
-   echo -e "	-d  <s>  Subdomain to be used as a wild card in the DNS SAN (default: dc.pge.com)"
+   echo -e "	-d  <s>  Subdomain to be used as a wild card in the DNS SAN (default: cbdbdemo.com)"
    exit 5 # Exit script after printing help
 }
 
@@ -21,10 +21,10 @@ _usage()
 # set the defaults, these can all be overriden as environment variables or passed via the cli
 CLUSTER=${CLUSTER:='cb-example'}
 NAMESPACE=${NAMESPACE:='default'}
-SUBDOMAIN=${SUBDOMAIN:='*.dc.pge.com'}
+SUBDOMAIN=${SUBDOMAIN:='cbdbdemo.com'}
 
 #default directory where easyrsa updates the certs
-PKI_DIR="/usr/local/etc/pki"
+PKI_DIR="./pki"
 
 # for arg in "$@"
 while getopts c:n:d:h flag
@@ -55,7 +55,7 @@ initCert ()
 
   echo -e "subject-alt-name=$SAN \n"
 
-  echo -e "Creating directory: $/tmp/SUBDOMAIN ..."
+  echo -e "Creating directory: /tmp/$SUBDOMAIN ..."
   # rm -rf "/tmp/$DOMAIN"
   mkdir -p "/tmp/$SUBDOMAIN"
   cp "$PKI_DIR/private/couchbase-server.key" "/tmp/$SUBDOMAIN/pkey.key"
@@ -71,3 +71,7 @@ initCert ()
 
 # Create TLS certificates
 initCert
+
+#create secrets
+kubectl create secret generic couchbase-server-tls --from-file /tmp/$SUBDOMAIN/chain.pem --from-file /tmp/$SUBDOMAIN/pkey.key --namespace $NAMESPACE
+kubectl create secret generic couchbase-operator-tls --from-file /tmp/$SUBDOMAIN/ca.crt --namespace $NAMESPACE
