@@ -12,14 +12,6 @@ cert_temp_dir=$(mktemp -d)
 pushd ${cert_temp_dir}
 
 
-
-# Function definitions
-#check_certs() {
-#    set +e
-#    kubectl get secret/${CLUSTER_NAME}-server-tls || kubectl get secret/${CLUSTER_NAME}-operator-tls && kubectl delete secret -l cluster=${CLUSTER_NAME}
-#    set -e
-#}
-
 install_requirements () {
     wget https://github.com/OpenVPN/easy-rsa/releases/download/v3.0.8/EasyRSA-3.0.8.tgz
     tar xvf EasyRSA-3.0.8.tgz
