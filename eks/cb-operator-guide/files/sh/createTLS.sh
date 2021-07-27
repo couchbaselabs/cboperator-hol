@@ -1,77 +1,103 @@
-#!/bin/bash
+#! /bin/bash
+set -x
+set -eo pipefail
+unset EASYRSA_SSL_CONF
 
-# Details steps to generate certs using easyrsa is described in the link below:
-# https://docs.couchbase.com/operator/current/tutorial-tls.html#easyrsa
+root_ca_password=$(openssl rand -base64 12)
+CLUSTER_NAME=$1
+DOMAIN=cbdbdemo.com
+NAMESPACE=cb
 
-#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-#  Function _usage
-#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-_usage()
-{
-   echo -e "Usage: ./createTLS.sh [options]"
-   echo -e "This script will take a Couchbase cluster-name, namespace (where it is deployed) and subdomain to generate TLS certificates with required DNS subject alternate names (SAN). Make sure easyrsa is in the path to run this script."
-   echo -e "Options:"
-   echo -e "	-c  <s>  Couchbase Cluster name used in the couchbase-cluster.yaml file (default: cb-example)"
-   echo -e "	-n  <s>  Namespace where cluster is deployed (default: default)"
-   echo -e "	-d  <s>  Subdomain to be used as a wild card in the DNS SAN (default: cbdbdemo.com)"
-   exit 5 # Exit script after printing help
+cert_temp_dir=$(mktemp -d)
+pushd ${cert_temp_dir}
+
+
+
+# Function definitions
+#check_certs() {
+#    set +e
+#    kubectl get secret/${CLUSTER_NAME}-server-tls || kubectl get secret/${CLUSTER_NAME}-operator-tls && kubectl delete secret -l cluster=${CLUSTER_NAME}
+#    set -e
+#}
+
+install_requirements () {
+    wget https://github.com/OpenVPN/easy-rsa/releases/download/v3.0.8/EasyRSA-3.0.8.tgz
+    tar xvf EasyRSA-3.0.8.tgz
+    cd EasyRSA-3.0.8
+}
+
+make_pki_ca () {
+    ./easyrsa init-pki
+    expect -f - <<- EOF
+        spawn ./easyrsa build-ca
+        expect "Enter New CA Key Passphrase:"
+        send -- "${root_ca_password}\r"
+        expect "Re-Enter New CA Key Passphrase:"
+        send -- "${root_ca_password}\r"
+        expect "Common Name"
+        send -- "Couchbase CA\r"
+        expect eof
+EOF
+# delete secret if existed
+kubectl get secret ${CLUSTER_NAME}-ca-password && kubectl delete secret ${CLUSTER_NAME}-ca-password
+kubectl create secret generic ${CLUSTER_NAME}-ca-password --from-literal=password=\'${root_ca_password}\'
+kubectl label secret ${CLUSTER_NAME}-ca-password cluster=${CLUSTER_NAME} app=couchbase-tls
+}
+
+# FIXME make it generic
+make_cb_server_cert () {
+    # generate
+    # see https://docs.couchbase.com/operator/current/tutorial-tls.html#creating-a-couchbase-cluster-server-certificate
+    expect -f - <<- EOF
+        spawn ./easyrsa --subject-alt-name='DNS:*.${CLUSTER_NAME},DNS:*.${CLUSTER_NAME}.${NAMESPACE},DNS:*.${CLUSTER_NAME}.${NAMESPACE}.svc,DNS:*.${CLUSTER_NAME}.${NAMESPACE}.svc.cluster.local,DNS:${CLUSTER_NAME}-srv,DNS:${CLUSTER_NAME}-srv.${NAMESPACE},DNS:${CLUSTER_NAME}-srv.${NAMESPACE}.svc,DNS:*.${CLUSTER_NAME}-srv.${NAMESPACE}.svc.cluster.local,DNS:*.${CLUSTER_NAME}.${DOMAIN},DNS:localhost' build-server-full couchbase-server nopass
+        expect "Enter pass phrase"
+        send -- "${root_ca_password}\r"
+        expect eof
+EOF
+    openssl rsa -in pki/private/couchbase-server.key -out pkey.key.der -outform DER
+    openssl rsa -in pkey.key.der -inform DER -out pkey.key -outform PEM
+    cp pki/issued/couchbase-server.crt ./chain.pem
+    cp pki/ca.crt ca.crt
+    cp pkey.key pkey.pem
+
+    # inject into cluster as secret
+    # delete secret if existed
+    kubectl get secret ${CLUSTER_NAME}-server-tls -n $NAMESPACE && kubectl delete secret ${CLUSTER_NAME}-server-tls -n $NAMESPACE
+    kubectl create secret generic ${CLUSTER_NAME}-server-tls --from-file ./pkey.key --from-file ./chain.pem --from-file ./pkey.pem -n $NAMESPACE
+    # why do we label secrets and never use that label ?
+    #kubectl label secret/${CLUSTER_NAME}-server-tls cluster=${CLUSTER_NAME} app=couchbase-tls -n $NAMESPACE
+}
+
+# the client cert is for the cbop
+make_cbop_cert () {
+    # see https://docs.couchbase.com/operator/current/tutorial-tls.html#creating-a-client-certificate
+    expect -f - <<- EOF
+        spawn ./easyrsa build-client-full Administrator nopass
+        expect "Enter pass phrase"
+        send -- "${root_ca_password}\r"
+        expect eof
+EOF
+    cp pki/private/Administrator.key ./couchbase-operator.key
+    cp pki/issued/Administrator.crt ./couchbase-operator.crt
+    # delete secret if existed
+    kubectl get secret ${CLUSTER_NAME}-operator-tls -n $NAMESPACE && kubectl delete secret ${CLUSTER_NAME}-operator-tls -n $NAMESPACE
+    kubectl create secret generic ${CLUSTER_NAME}-operator-tls --from-file ./ca.crt --from-file ./couchbase-operator.key --from-file ./couchbase-operator.crt -n $NAMESPACE
+    # why do we label secrets and never use that label ?
+    #kubectl label secret/${CLUSTER_NAME}-operator-tls cluster=${CLUSTER_NAME} app=couchbase-tls -n $NAMESPACE
 }
 
 
-# set the defaults, these can all be overriden as environment variables or passed via the cli
-CLUSTER=${CLUSTER:='cb-example'}
-NAMESPACE=${NAMESPACE:='default'}
-SUBDOMAIN=${SUBDOMAIN:='cbdbdemo.com'}
-
-#default directory where easyrsa updates the certs
-PKI_DIR="./pki"
-
-# for arg in "$@"
-while getopts c:n:d:h flag
-do
-  # case "$arg" in
-  case "${flag}" in
-    c) CLUSTER=${OPTARG};;
-    n) NAMESPACE=${OPTARG};;
-    d) SUBDOMAIN=${OPTARG};;
-    h) _usage
-  esac
-done
-
-# echo -e "cluster: $CLUSTER, namespace: $NAMESPACE, domain: $SUBDOMAIN \n"
-SAN='DNS:*.cluster-name,DNS:*.cluster-name.namespace,DNS:*.cluster-name.namespace.svc,DNS:*.cluster-name.namespace.svc.cluster.local,DNS:cluster-name-srv,DNS:cluster-name-srv.namespace,DNS:cluster-name-srv.namespace.svc,DNS:*.cluster-name-srv.namespace.svc.cluster.local,DNS:localhost,DNS:*.subdomain'
-#replace cluster-name, namespace and Subdomain
-SAN="${SAN//cluster-name/$CLUSTER}"
-SAN="${SAN//namespace/$NAMESPACE}"
-SAN="${SAN//subdomain/$SUBDOMAIN}"
-
-
-
-initCert ()
-{
-  easyrsa init-pki
-  easyrsa build-ca nopass
-  easyrsa --subject-alt-name=$SAN build-server-full couchbase-server nopass
-
-  echo -e "subject-alt-name=$SAN \n"
-
-  echo -e "Creating directory: /tmp/$SUBDOMAIN ..."
-  # rm -rf "/tmp/$DOMAIN"
-  mkdir -p "/tmp/$SUBDOMAIN"
-  cp "$PKI_DIR/private/couchbase-server.key" "/tmp/$SUBDOMAIN/pkey.key"
-  cp "$PKI_DIR/issued/couchbase-server.crt" "/tmp/$SUBDOMAIN/chain.pem"
-  cp "$PKI_DIR/ca.crt" "/tmp/$SUBDOMAIN"
-
-  cd "/tmp/$SUBDOMAIN"
-  # Due to an issue with Couchbase Server’s private key handling, server keys
-  # need to be [PKCS#1](https://issues.couchbase.com/browse/MB-24404) formatted.
-  openssl rsa -in pkey.key -out pkey.key.der -outform DER
-  openssl rsa -in pkey.key.der -inform DER -out pkey.key
+cleanup () {
+    popd
+    rm -rf ${cert_temp_dir}
 }
 
-# Create TLS certificates
-initCert
-
-#create secrets
-kubectl create secret generic couchbase-server-tls --from-file /tmp/$SUBDOMAIN/chain.pem --from-file /tmp/$SUBDOMAIN/pkey.key --namespace $NAMESPACE
-kubectl create secret generic couchbase-operator-tls --from-file /tmp/$SUBDOMAIN/ca.crt --namespace $NAMESPACE
+## Script
+#check_certs 2>/dev/null
+install_requirements
+make_pki_ca
+make_cb_server_cert
+make_cbop_cert
+#make_cbop_dac_cert
+#submit_cb_server_certs || true
+cleanup
