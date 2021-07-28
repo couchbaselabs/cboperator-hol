@@ -8,5 +8,5 @@ parameters:
   type: gp2
   fsType: xfs
 provisioner: kubernetes.io/aws-ebs
-reclaimPolicy: Delete
+reclaimPolicy: Delete # Reclaim in prod
 volumeBindingMode: WaitForFirstConsumer

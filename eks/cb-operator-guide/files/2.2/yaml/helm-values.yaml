@@ -3,7 +3,7 @@
 cluster:
   platform: aws
   # name of the cluster. defaults to name of chart release
-  name: mojio
+  name: demo
   # image is the base couchbase image and version of the couchbase cluster
   image: "couchbase/server:6.6.1"
   # guarantees that the pods in the same cluster are unable to be scheduled on the same node

@@ -1,0 +1,68 @@
+
+
+## Display Route53 DNS entries
+```BASH
+$aws route53 list-resource-record-sets --output text --hosted-zone-id "/hostedzone/Z0850944MRQUJZO8FQ94"
+```
+
+
+## Deploy AWS Ingress Controller
+
+### Create an IAM policy called
+Create a policy called AWSLoadBalancerControllerIAMPolicy
+
+```
+$ aws iam create-policy \
+     --policy-name AWSLoadBalancerControllerIAMPolicy \
+     --policy-document https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/main/docs/install/iam_policy.json
+
+{
+    "Policy": {
+        "PolicyName": "AWSLoadBalancerControllerIAMPolicy",
+        "PermissionsBoundaryUsageCount": 0,
+        "CreateDate": "2021-01-17T17:54:44Z",
+        "AttachmentCount": 0,
+        "IsAttachable": true,
+        "PolicyId": "ANPA3KLIJRRW3CIDR6I4V",
+        "DefaultVersionId": "v1",
+        "Path": "/",
+        "Arn": "arn:aws:iam::778144681069:policy/AWSLoadBalancerControllerIAMPolicy",
+        "UpdateDate": "2021-01-17T17:54:44Z"
+    }
+}
+```
+
+### Create a IAM role and ServiceAccount
+
+```
+$ eksctl create iamserviceaccount \
+  --cluster pgeDemo \
+  --namespace default \
+  --name aws-load-balancer-controller \
+  --attach-policy-arn arn:aws:iam::778144681069:policy/AWSLoadBalancerControllerIAMPolicy \
+  --override-existing-serviceaccounts \
+  --region us-west-2 \
+  --approve
+```
+setup VPC
+```
+export VPC_ID=$(aws eks describe-cluster --name pgeDemo --region us-west-2 --query "cluster.resourcesVpcConfig.vpcId" --output text)
+
+echo ${VPC_ID}
+
+```
+
+```
+helm repo add eks https://aws.github.io/eks-charts
+
+
+helm upgrade -i aws-load-balancer-controller \
+    eks/aws-load-balancer-controller \
+    -n default \
+    --set clusterName=pgeDemo \
+    --set serviceAccount.create=false \
+    --set serviceAccount.name=aws-load-balancer-controller \
+    --set image.tag="${LBC_VERSION}" \
+    --set region=${AWS_REGION} \
+    --set vpcId=${VPC_ID}
+```

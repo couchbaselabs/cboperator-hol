@@ -1,9 +1,9 @@
 apiVersion: couchbase.com/v2
 kind: CouchbaseCluster
 metadata:
-  name: cbdemo-lb
+  name: cbdemo
 spec:
-  image: couchbase/server:6.0.4
+  image: couchbase/server:6.6.1
   antiAffinity: true
   authSecret: cb-admin-auth
   securityContext:
@@ -49,53 +49,97 @@ spec:
       userDNMapping:
         template: "uid=%u,dc=example,dc=com"
       authorizationEnabled: false
-      groupsQuery: "(&(objectclass=groupOfUniqueNames)(uniquemember=uid=%u,dc=example,dc=com))"
-      nestedGroupsEnabled: false
   networking:
+    serviceAnnotations:
+      service.beta.kubernetes.io/aws-load-balancer-internal: "true"
     exposeAdminConsole: true
     adminConsoleServices:
     - data
-    - query
-    adminConsoleServiceType: NodePort
+    adminConsoleServiceType: LoadBalancer
     exposedFeatures:
     - xdcr
     - client
     exposedFeatureServiceType: LoadBalancer
-    exposedFeatureTrafficPolicy: Local
+    # exposedFeatureTrafficPolicy: Local
     tls:
       static:
         serverSecret: couchbase-server-tls
         operatorSecret: couchbase-operator-tls
     dns:
-      domain: anuj.balajiacloud.guru
+      domain: pge-dev.cbdbdemo.com
+  # networking:
+  #   exposeAdminConsole: true
+  #   adminConsoleServices:
+  #   - query
+  #   adminConsoleServiceType: NodePort
+  #   exposedFeatures:
+  #   - xdcr
+  #   - client
+  #   exposedFeatureServiceType: NodePort
+  #   exposedFeatureTrafficPolicy: Local
   buckets:
     managed: false
   xdcr:
     managed: false
+#  monitoring:
+#    prometheus:
+#      enabled: true
+#      image: couchbase/exporter:1.0.2
   servers:
-    - name: data-service
-      size: 2
+    - name: data-service-2a
+      size: 1
       services:
         - data
+      serverGroups:
+       - us-west-2a
       volumeMounts:
         default: pvc-default 	# /opt/couchbase/var/lib/couchbase
-        data: pvc-data	# /mnt/data
+        data: pvc-data	      # /mnt/data
       pod:
         spec:
           nodeSelector:
             beta.kubernetes.io/instance-type: m5.large
-    - name: index-quer-service
-      size: 2
+    - name: data-service-2b
+      size: 1
+      services:
+        - data
+      serverGroups:
+       - us-west-2b
+      volumeMounts:
+        default: pvc-default 	# /opt/couchbase/var/lib/couchbase
+        data: pvc-data	      # /mnt/data
+      pod:
+        spec:
+          nodeSelector:
+            beta.kubernetes.io/instance-type: m5.large
+    - name: index-query-service-2a
+      size: 1
       services:
         - index
         - query
+      serverGroups:
+       - us-west-2a
       volumeMounts:
         default: pvc-default
         index: pvc-index
       pod:
         spec:
           nodeSelector:
-            beta.kubernetes.io/instance-type: m5.xlarge
+            beta.kubernetes.io/instance-type: r5.large
+    - name: index-query-service-2b
+      size: 1
+      services:
+        - index
+        - query
+      serverGroups:
+       - us-west-2b
+      volumeMounts:
+        default: pvc-default
+        index: pvc-index
+      pod:
+        spec:
+          nodeSelector:
+            beta.kubernetes.io/instance-type: r5.large
   volumeClaimTemplates:
     - metadata:
         name: pvc-default

@@ -1,0 +1,25 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: sgw-ingress
+  labels:
+    app: sync-gateway
+  annotations:
+    kubernetes.io/ingress.class: alb
+    # required to use ClusterIP
+    alb.ingress.kubernetes.io/target-type: ip
+    # required to place on public-subnet
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    # use TLS registered to your sub-domain, ALB will terminate the certificate
+    alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:us-west-2:778144681069:certificate/b0eda629-6c40-49da-a7c8-bf5ef7c79ec7
+    # respond to these ports
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 4984},{"HTTPS":443}]'
+spec:
+  rules:
+    - host: pge.cbdbdemo.com
+      http:
+        paths:
+        - path: /*
+          backend:
+            serviceName: sgw-service
+            servicePort: 4984

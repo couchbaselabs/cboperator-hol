@@ -14,11 +14,13 @@ spec:
     spec:
       containers:
       - name: sync-gateway
-        image: couchbase/sync-gateway:2.7.3-enterprise
+        image: couchbase/sync-gateway:2.8.0-enterprise
         volumeMounts:
         - name: config
           mountPath: /etc/sync_gateway
           readOnly: true
+        - name: sgw-pv
+          mountPath: "/var/log"
         env:
         - name: GOMAXPROCS
           value: "1"
@@ -26,3 +28,6 @@ spec:
       - name: config
         secret:
           secretName: sync-gateway
+      - name: sgw-pv
+        persistentVolumeClaim:
+          claimName: sgw-pvc

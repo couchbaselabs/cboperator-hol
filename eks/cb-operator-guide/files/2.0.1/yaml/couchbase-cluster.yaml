@@ -3,7 +3,7 @@ kind: CouchbaseCluster
 metadata:
   name: cbdemo
 spec:
-  image: couchbase/server:6.5.1
+  image: couchbase/server:6.6.1
   antiAffinity: true
   authSecret: cb-admin-auth
   securityContext:

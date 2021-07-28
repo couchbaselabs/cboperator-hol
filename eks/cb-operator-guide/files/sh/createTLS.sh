@@ -41,7 +41,7 @@ make_cb_server_cert () {
     # generate
     # see https://docs.couchbase.com/operator/current/tutorial-tls.html#creating-a-couchbase-cluster-server-certificate
     expect -f - <<- EOF
-        spawn ./easyrsa --subject-alt-name='DNS:*.${CLUSTER_NAME},DNS:*.${CLUSTER_NAME}.${NAMESPACE},DNS:*.${CLUSTER_NAME}.${NAMESPACE}.svc,DNS:*.${CLUSTER_NAME}.${NAMESPACE}.svc.cluster.local,DNS:${CLUSTER_NAME}-srv,DNS:${CLUSTER_NAME}-srv.${NAMESPACE},DNS:${CLUSTER_NAME}-srv.${NAMESPACE}.svc,DNS:*.${CLUSTER_NAME}-srv.${NAMESPACE}.svc.cluster.local,DNS:*.${CLUSTER_NAME}.${DOMAIN},DNS:localhost' build-server-full couchbase-server nopass
+        spawn ./easyrsa --subject-alt-name='DNS:*.${CLUSTER_NAME},DNS:*.${CLUSTER_NAME}.${NAMESPACE},DNS:*.${CLUSTER_NAME}.${NAMESPACE}.svc,DNS:*.${CLUSTER_NAME}.${NAMESPACE}.svc.cluster.local,DNS:${CLUSTER_NAME}-srv,DNS:${CLUSTER_NAME}-srv.${NAMESPACE},DNS:${CLUSTER_NAME}-srv.${NAMESPACE}.svc,DNS:*.${CLUSTER_NAME}-srv.${NAMESPACE}.svc.cluster.local,DNS:*.${CLUSTER_NAME}.${DOMAIN},DNS:localhost,DNS:host.${DOMAIN}' build-server-full couchbase-server nopass
         expect "Enter pass phrase"
         send -- "${root_ca_password}\r"
         expect eof
