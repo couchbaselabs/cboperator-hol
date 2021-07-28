@@ -1,0 +1,160 @@
+apiVersion: couchbase.com/v2
+kind: CouchbaseCluster
+metadata:
+  name: cbdemo
+spec:
+  # image: couchbase/server:6.6.0
+  image: couchbase/server:6.6.1
+  paused: false
+  antiAffinity: true
+  softwareUpdateNotifications: true
+  upgradeStrategy: RollingUpgrade
+  hibernate: false
+  hibernationStrategy: Immediate
+  recoveryPolicy: PrioritizeDataIntegrity
+  serverGroups:
+  - us-west-2a
+  - us-west-2b
+  securityContext:
+    runAsUser: 1000
+    runAsNonRoot: true
+    fsGroup: 1000
+  platform: aws
+  cluster:
+    clusterName: cbdb
+    dataServiceMemoryQuota: 6.4Gi #80% of 8GB
+    indexServiceMemoryQuota: 12.8Gi #80% of 16GB
+    searchServiceMemoryQuota: 2.5Gi
+    eventingServiceMemoryQuota: 2.5Gi
+    analyticsServiceMemoryQuota: 2.5Gi
+    indexStorageSetting: plasma
+    autoFailoverTimeout: 10s
+    autoFailoverMaxCount: 1
+    autoFailoverOnDataDiskIssues: true
+    autoFailoverOnDataDiskIssuesTimePeriod: 60s
+    autoFailoverServerGroup: false
+    autoCompaction:
+      databaseFragmentationThreshold:
+        percent: 30
+        size: 1Gi
+      viewFragmentationThreshold:
+        percent: 30
+        size: 1Gi
+      parallelCompaction: false
+      timeWindow:
+        start: 02:00
+        end: 06:00
+        abortCompactionOutsideWindow: true
+      tombstonePurgeInterval: 72h
+  security:
+    adminSecret: cb-admin-auth
+    rbac:
+      managed: false
+    ldap:
+      hosts:
+      - ldap.forumsys.com
+      port: 389
+      bindDN: "cn=read-only-admin,dc=example,dc=com"
+      bindSecret: cb-admin-auth
+      authenticationEnabled: true
+      userDNMapping:
+        template: "uid=%u,dc=example,dc=com"
+      authorizationEnabled: false
+  networking:
+    exposeAdminConsole: true
+    exposedFeatures:
+    - xdcr
+    - client
+  buckets:
+    managed: false
+  xdcr:
+    managed: false
+  monitoring:
+    prometheus:
+      enabled: true
+      image: couchbase/exporter:1.0.3
+      resources:
+        requests:
+          cpu: 100m
+          memory: 100Mi
+  servers:
+    - name: data-service-2a
+      size: 1
+      services:
+        - data
+      serverGroups:
+       - us-west-2a
+      autoscaleEnabled: false
+      volumeMounts:
+        default: pvc-default 	# /opt/couchbase/var/lib/couchbase
+        data: pvc-data	      # /mnt/data
+      pod:
+        spec:
+          nodeSelector:
+            beta.kubernetes.io/instance-type: m5.large
+    - name: data-service-2b
+      size: 1
+      services:
+        - data
+      serverGroups:
+       - us-west-2b
+      autoscaleEnabled: false
+      volumeMounts:
+        default: pvc-default 	# /opt/couchbase/var/lib/couchbase
+        data: pvc-data	      # /mnt/data
+      pod:
+        spec:
+          nodeSelector:
+            beta.kubernetes.io/instance-type: m5.large
+    - name: index-query-service-2a
+      size: 1
+      services:
+        - index
+        - query
+      serverGroups:
+       - us-west-2a
+      autoscaleEnabled: false
+      volumeMounts:
+        default: pvc-default
+        index: pvc-index
+      pod:
+        spec:
+          nodeSelector:
+            beta.kubernetes.io/instance-type: r5.large
+    - name: index-query-service-2b
+      size: 1
+      services:
+        - index
+        - query
+      serverGroups:
+       - us-west-2b
+      autoscaleEnabled: false
+      volumeMounts:
+        default: pvc-default
+        index: pvc-index
+      pod:
+        spec:
+          nodeSelector:
+            beta.kubernetes.io/instance-type: r5.large
+  volumeClaimTemplates:
+    - metadata:
+        name: pvc-default
+      spec:
+        storageClassName: nas
+        resources:
+          requests:
+            storage: 1Gi
+    - metadata:
+        name: pvc-data
+      spec:
+        storageClassName: nas
+        resources:
+          requests:
+            storage: 2Gi
+    - metadata:
+        name: pvc-index
+      spec:
+        storageClassName: nas
+        resources:
+          requests:
+            storage: 3Gi
