@@ -28,24 +28,6 @@ cluster:
     exposedFeatures:
       - client
       - xdcr
-    # Defines how the admin console service is exposed.
-    # Allowed values are NodePort and LoadBalancer.
-    # If this field is LoadBalancer then you must also define a spec.dns.domain.
-    adminConsoleServiceType: NodePort
-    # Defines how the per Couchbase node ports are exposed.
-    # Allowed values are NodePort and LoadBalancer.
-    # If this field is LoadBalancer then you must also define a spec.dns.domain.
-    exposedFeatureServiceType: NodePort
-    
-    # The Couchbase cluster tls configuration (auto-generated)
-    # tls:
-    #   static:
-    #     serverSecret: demo-server-tls
-    #     operatorSecret: demo-operator-tls
-    # # The dynamic DNS configuration to use when exposing services
-    # dns:
-    #   domain: cbdbdemo.com
-
   logging:
     # The retention period that log volumes are kept for after their associated pods have been deleted.
     logRetentionTime: 604800s
