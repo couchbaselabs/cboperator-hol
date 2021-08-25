@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: ubuntu-client
+  labels:
+    app: myapplabel
+spec:  # specification of the pod's contents
+  restartPolicy: Always
+  containers:
+  - name: ubuntu-01
+    image: "ubuntu:14.04"
+    # Just spin & wait forever
+    command: [ "/bin/bash", "-c", "--" ]
+    args: [ "while true; do sleep 30; done;" ]
