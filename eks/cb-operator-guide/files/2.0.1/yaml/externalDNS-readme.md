@@ -1,6 +1,6 @@
 
 
-## How create externalDNS [[url](https://eksctl.io/usage/iamserviceaccounts/)]
+## How create externalDNS
 
 ### 1: Create IAM Policy
 
@@ -36,7 +36,7 @@ $ eksctl create iamserviceaccount  \
   --name external-dns-sa  \
   --namespace default   \
   --cluster eksCluster   \
-  --attach-policy-arn arn:aws:iam::778144681069:policy/AllowExternalDNSUpdates   \
+  --attach-policy-arn arn:aws:iam::7781:policy/AllowExternalDNSUpdates   \
   --approve   \
   --override-existing-serviceaccounts   \
   --region us-west-2
