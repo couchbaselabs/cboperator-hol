@@ -90,6 +90,4 @@ install_requirements
 make_pki_ca
 make_cb_server_cert
 make_cbop_cert
-#make_cbop_dac_cert
-#submit_cb_server_certs || true
 cleanup

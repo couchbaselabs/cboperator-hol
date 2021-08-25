@@ -14,7 +14,19 @@ $ aws iam create-policy \
 ```
 Copy the ARN of the policy as we are going to use it next.
 
-### 2: Create Service Account creation
+### 2: Associate OIDC
+
+```BASH
+$ eksctl utils associate-iam-oidc-provider --region=us-west-2 --cluster=eksCluster --approve
+
+[ℹ]  eksctl version 0.35.0
+[ℹ]  using region us-west-2
+[ℹ]  will create IAM Open ID Connect provider for cluster "eksCluster" in "us-west-2"
+[✔]  created IAM Open ID Connect provider for cluster "eksCluster" in "us-west-2"
+```
+
+
+### 3: Create Service Account creation
 
 Note we are going to create the service-account under  `default` namespace. If you want to to use a different namespace then make sure you change the same namespace under `ClusterRoleBinding` section of [externalDNS.yaml](externalDNS.yaml).
 
@@ -23,8 +35,8 @@ Note we are going to create the service-account under  `default` namespace. If y
 $ eksctl create iamserviceaccount  \
   --name external-dns-sa  \
   --namespace default   \
-  --cluster demoEKS   \
-  --attach-policy-arn arn:aws:iam::7781:policy/AllowExternalDNSUpdates   \
+  --cluster eksCluster   \
+  --attach-policy-arn arn:aws:iam::778144681069:policy/AllowExternalDNSUpdates   \
   --approve   \
   --override-existing-serviceaccounts   \
   --region us-west-2
@@ -43,23 +55,10 @@ $ eksctl create iamserviceaccount  \
 ```
 
 
-### 3: Associate OIDC
-
-```BASH
-$ eksctl utils associate-iam-oidc-provider --region=us-west-2 --cluster=demoEKS --approve
-
-[ℹ]  eksctl version 0.35.0
-[ℹ]  using region us-west-2
-[ℹ]  will create IAM Open ID Connect provider for cluster "demoEKS" in "us-west-2"
-[✔]  created IAM Open ID Connect provider for cluster "demoEKS" in "us-west-2"
-```
-
-
-
 ### 4: Display ARN
 
 ```BASH
-$ eksctl get iamserviceaccount --cluster demoEKS --region us-west-2
+$ eksctl get iamserviceaccount --cluster eksCluster --region us-west-2
 
 NAMESPACE	NAME				ROLE ARN
 default		external-dns-iam-sa-cbdb	arn:aws:iam::7781:role/eksctl-pgeDemo-addon-iamserviceaccount-defau-Role1-1AKXRKOW6CJYN

@@ -1,19 +1,20 @@
 apiVersion: eksctl.io/v1alpha5
 kind: ClusterConfig
 metadata:
-  name: pgeDemo
+  name: eksCluster
   region: us-west-2
   version: '1.18'
 availabilityZones:
     - us-west-2a
     - us-west-2b
+    - us-west-2c
 # traits of worker nodes
 nodeGroups:
   - name: m5l-workers
     instanceType: m5.large
-    desiredCapacity: 2
-    minSize: 2
-    maxSize: 4
+    desiredCapacity: 3
+    minSize: 3
+    maxSize: 6
     ami: auto
     iam:
       # polices added to worker node role
@@ -22,29 +23,29 @@ nodeGroups:
         externalDNS: true
         # required for ALB-ingress
         albIngress: true
-  - name: r5l-workers
-    instanceType: r5.large
-    desiredCapacity: 2
-    minSize: 2
-    maxSize: 4
-    ami: auto
-    iam:
-      # polices added to worker node role
-      withAddonPolicies:
-        # allows read/write to zones in Route53
-        externalDNS: true
-        # required for ALB-ingress
-        albIngress: true
-  - name: t2xl-workers
-    instanceType: t2.xlarge
-    desiredCapacity: 1
-    minSize: 1
-    maxSize: 2
-    ami: auto
-    iam:
-      # polices added to worker node role
-      withAddonPolicies:
-        # allows read/write to zones in Route53
-        externalDNS: true
-        # required for ALB-ingress
-        albIngress: true
+  # - name: r5l-workers
+  #   instanceType: r5.large
+  #   desiredCapacity: 3
+  #   minSize: 3
+  #   maxSize: 6
+  #   ami: auto
+  #   iam:
+  #     # polices added to worker node role
+  #     withAddonPolicies:
+  #       # allows read/write to zones in Route53
+  #       externalDNS: true
+  #       # required for ALB-ingress
+  #       albIngress: true
+  # - name: t2xl-workers
+  #   instanceType: t2.xlarge
+  #   desiredCapacity: 1
+  #   minSize: 1
+  #   maxSize: 2
+  #   ami: auto
+  #   iam:
+  #     # polices added to worker node role
+  #     withAddonPolicies:
+  #       # allows read/write to zones in Route53
+  #       externalDNS: true
+  #       # required for ALB-ingress
+  #       albIngress: true

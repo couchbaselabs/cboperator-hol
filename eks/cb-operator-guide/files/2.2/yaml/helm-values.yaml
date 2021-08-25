@@ -38,9 +38,19 @@ cluster:
       domain: cbdbdemo.com
     # Custom map of annotations to be added to console and per-pod (exposed feature) services
     exposedFeatureServiceTemplate:
+      # metadata:
+      #   annotations:
+      #     service.beta.kubernetes.io/aws-load-balancer-internal: "true"
+      #    service.beta.kubernetes.io/aws-load-balancer-connection-idle-timeout: 3600
+      #     service.beta.kubernetes.io/aws-load-balancer-additional-resource-tags: "Environment=dev"
       spec:
         type: LoadBalancer
     adminConsoleServiceTemplate:
+      # metadata:
+      #   annotations:
+      #     service.beta.kubernetes.io/aws-load-balancer-internal: "true"
+      #     service.beta.kubernetes.io/aws-load-balancer-connection-idle-timeout: 3600
+      #     service.beta.kubernetes.io/aws-load-balancer-additional-resource-tags: "Environment=dev"
       spec:
         type: LoadBalancer
   logging:
@@ -93,8 +103,9 @@ cluster:
     # The amount of memory that should be allocated to the analytics service
     analyticsServiceMemoryQuota: 1Gi
     # The index storage mode to use for secondary indexing
-    indexStorageSetting: memory_optimized
-    # indexStorageSetting: plasma
+    indexStorageSetting: plasma
+    indexer:
+      storageMode: plasma
     # Timeout that expires to trigger the auto failover.
     autoFailoverTimeout: 10s
     # The number of failover events we can tolerate
@@ -144,35 +155,12 @@ cluster:
   servers:
     # Name for the server configuration. It must be unique.
     default: null
-    data:
-      name: data-service
+    all:
       # Size of the couchbase cluster.
-      size: 1
+      size: 3
       # The services to run on nodes
       services:
         - data
-      # Defines whether Autoscale is permitted for this specific server configuration.
-      # Only `query` service is allowed to be defined unless `enablePreviewScaling` is set.
-      autoscaleEnabled: false
-      # volume claims to use for persistent storage
-      volumeMounts:
-        default: pvc-default 	# /opt/couchbase/var/lib/couchbase
-        data: pvc-data	      # /mnt/data
-      # ServerGroups define the set of availability zones we want to distribute pods over.
-      serverGroups:
-        - us-west-2a
-        - us-west-2b
-        - us-west-2c
-      resources:
-        requests:
-          cpu: 1000m
-          memory: 3Gi
-    # Name for the server configuration. It must be unique.
-    index:
-      # Size of the couchbase cluster.
-      size: 1
-      # The services to run on nodes
-      services:
         - index
         - query
       # Defines whether Autoscale is permitted for this specific server configuration.
@@ -181,6 +169,7 @@ cluster:
       # volume claims to use for persistent storage
       volumeMounts:
         default: pvc-default 	# /opt/couchbase/var/lib/couchbase
+        data: pvc-data	      # /mnt/data
         index: pvc-index	      # /mnt/index
       # ServerGroups define the set of availability zones we want to distribute pods over.
       serverGroups:
@@ -241,35 +230,36 @@ cluster:
     #       memory: 5Gi
   # VolumeClaimTemplates define the desired characteristics of a volume
   # that can be requested and claimed by a pod.
+  enableOnlineVolumeExpansion: true
   volumeClaimTemplates:
     - metadata:
         name: pvc-default
       spec:
-        storageClassName: gp2-multi-zone
+        storageClassName: nas
         resources:
           requests:
-            storage: 5Gi
+            storage: 6Gi
     - metadata:
         name: pvc-analytics
       spec:
-        storageClassName: gp2-multi-zone
+        storageClassName: nas
         resources:
           requests:
             storage: 25Gi
     - metadata:
         name: pvc-data
       spec:
-        storageClassName: gp2-multi-zone
+        storageClassName: nas
         resources:
           requests:
-            storage: 20Gi
+            storage: 21Gi
     - metadata:
         name: pvc-index
       spec:
-        storageClassName: gp2-multi-zone
+        storageClassName: nas
         resources:
           requests:
-            storage: 10Gi
+            storage: 11Gi
 # couchbase buckets to create
 # disable default bucket creation by setting
 # buckets.default: null
@@ -278,7 +268,7 @@ cluster:
 buckets:
   # A bucket to create by default
   default: null
-  asset360:
+  test:
     # Kind of bucket
     kind: CouchbaseBucket
     # Name of the bucket
